@@ -64,6 +64,9 @@ enum token_type {
     I_FUENTE, //'['
     F_FUENTE, //']'
 
+    I_URL, //'{'
+    F_URL, //'}'
+
     ESPACIO, //' '
     SALTO_DE_LINEA, //'\n'    
 
@@ -155,6 +158,11 @@ void Token::print() {
         std::cout << "COURIER' ";
     else if (type == HELVETICA)
         std::cout << "HELVETICA' ";
+    else if (type == I_URL)
+        std::cout << "I_URL' ";
+    else if (type == F_URL)
+        std::cout << "F_URL' ";
+
 
     //std::cout << "VALUE: '" << value <<"'\n";
     cout << "VALUE: '" << value << "' << LINE: " << lineIndex << "\n";
@@ -516,11 +524,7 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
             token_i_p.print();
 
             //stack.push_back(I_OPCION);
-            stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
-            
-            // FONT
-            Token token_i_f(I_FUENTE, "{", getNumberOfLine(index));
-            tokens.push_back(token_i_f);
+            stack.push_back(Token(I_OPCION, "{", getNumberOfLine(index)));
             
             // collect color word
             string link;
@@ -542,7 +546,7 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
 
             if(character == '}')
             {
-                Token token_f_c(F_COLOR, "}", getNumberOfLine(index));
+                Token token_f_c(F_URL, "}", getNumberOfLine(index));
                 tokens.push_back(token_c);
             }
             else
@@ -653,7 +657,8 @@ string scanner::collect_word(int &index)
             character == '*' || character == '$' || character == '_' ||
             character == '<' || character == '>' ||
             character == '(' || character == ')' ||
-            character == '[' || character == ']' )
+            character == '[' || character == ']' ||
+            character == '{' || character == '}' )
         {
             break;
         }
@@ -681,7 +686,7 @@ bool scanner::findToken( token_type type, vector<Token> stack){
         }
     }
     return false;
-}
+    }
 
 scanner::~scanner(){}
 
