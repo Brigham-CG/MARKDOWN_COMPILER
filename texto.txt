@@ -1,5 +1,9 @@
+# Estilos especiales
+*texto en negrita*
+_texto en tachado_
+$texto en cursiva$
 
-<(rojo) esto es una prueba de color>
-<[arial] esto es una prueba de fuente>
-
-// nada compila normal
+# Estilos especiales con errores
+*texto en negrita
+_texto en tachado
+$texto en cursiva
