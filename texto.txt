@@ -1,3 +1,4 @@
+
 // this is a comment
 # titulo // comment
 ##   subtitulo
@@ -5,3 +6,5 @@
 
 esto es otro _*tipo*_ de $*texto 
 y esto es mas texto*$
+
+/esto es un texto no comentario

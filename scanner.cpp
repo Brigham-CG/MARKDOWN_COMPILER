@@ -7,10 +7,12 @@
 
 using namespace std;
 
+// ####################################### AUXILIAR FUNCTIONS ################################################
+
 string read_file(string file_path)
 {
     std::ifstream file(file_path);   
- 
+
     if (!file.is_open()) {
         std::cerr << "Error: no se pudo abrir el archivo: " << file_path << std::endl;
         return ""; 
@@ -23,11 +25,9 @@ string read_file(string file_path)
     return content;
 }
 
-
 std::string reference_text = "abcdefghijklmnopqrstuvwxyz";
 std::string reference_number = "1234567890";
 std::string reference_special = "*\\_$";
-
 
 enum token_type {
 
@@ -65,6 +65,8 @@ enum token_type {
     RGB, //'rgb'
 };
 
+// ####################################### TOKEN CLASS ################################################
+
 class Token
 {
     private:
@@ -84,8 +86,7 @@ Token::Token(token_type i_type, string i_value)
     value = i_value;
 }
 
-void Token::print()
-{
+void Token::print() {
     std::cout << "TYPE: '";
     if(type == I_TITULO)
         std::cout << "I_TITULO' ";
@@ -113,10 +114,9 @@ void Token::print()
     std::cout << "VALUE: '" << value <<"'\n";
 }
 
+Token::~Token(){}
 
-Token::~Token()
-{
-}
+// ####################################### SCANNER CLASS ################################################
 
 class scanner
 {
@@ -135,39 +135,32 @@ class scanner
 
         string collect_word(int &index);
 
-
     public:
-        scanner(string fileName);
+        scanner(string fileName);                   // Constructor
         ~scanner();
 
-        vector<Token> get_tokens();
+        vector<Token> get_tokens();                 // Get tokens
 
 };
 
-scanner::scanner(string fileName)
-{
+scanner::scanner(string fileName) {
     text = read_file(fileName);
     last_char = '\n';
 }
 
-void scanner::process_text()
-{   
+void scanner::process_text() {   
 
-    int index = 0;
+    cout << endl << "[+] Text size: " << text.size() << endl << endl;
 
-    int end_index = text.size();
-
-    cout << text.size() << endl;
-
+    int index = 0;                      // Puntero al caracter actual
+    int end_index = text.size();        // Puntero al final del texto
     vector<token_type> stack;
 
-    while (index < end_index)
-    {   
+    while (index < end_index) {   
         recognize_token(index, stack);
     }
 
-    if(!stack.empty())
-    {
+    if(!stack.empty()) {
         //error
         std::cout << "error\n";
     }
@@ -177,66 +170,80 @@ void scanner::recognize_token(int &index, vector<token_type> &stack)
 {
     char character = get_char(index);
 
-    if(character == ' ')
-    {
+    // * Espacios en blanco
+    if(character == ' ') {
         last_char = character;
         return;
     }
-    else if(character == '\n')
-    {
+
+    // * Salto de línea
+    else if(character == '\n') {
 
         last_char = character;
+        
         Token token(SALTO_DE_LINEA, "\n");
         tokens.push_back(token);
         cout << "Debug Scan Token collected - ";
         token.print();
     }
-    else if(character == '/')
-    {
+
+    // * Comentarios
+    else if(character == '/') {
         char next_char = peek_char(index);
-        if(next_char == '/') // is_comment
-        {
+        
+        if(next_char == '/') { // is_comment
             skip_comment(index);
             std::cout << "Debug Scan Comment skipped\n";
             last_char = '\n';
         }
-        // is word
+        else{   // Its a word/text
+            string word;
+            word  += character;
+            word += collect_word(index);
+
+            Token token(WORD, word);
+            tokens.push_back(token);
+            cout << "Debug Scan Token collected - ";
+            token.print();
+        }
     }
-    else if(last_char == '\n' && character == '#')
-    {
+    
+    // * Titulos - Subtitulos - Subsubtitulos
+    else if(last_char == '\n' && character == '#') {
         char next_char = peek_char(index);
         
-        if(next_char == '#')
-        {
+        if(next_char == '#') {                              // * Es un subtítulo o subsubtitulo
             index++;
             character = next_char;
+
             next_char= peek_char(index);
-            if(next_char == '#')
-            {
-                //is subsubtitle
+            
+            if(next_char == '#') {                          // * Es un subsubtitulo
                 index++;
+                last_char = next_char;
+
                 Token token(I_SUBSUBTITULO, "###");
                 tokens.push_back(token);
-                last_char = next_char;
                 cout << "Debug Scan Token collected - ";
                 token.print();
+                
                 return;
             }
-            else 
-            {
-                // is subtitle
+
+            else {                                          // * Es un subtitulo
+                last_char = character;
+
                 Token token(I_SUBTITULO, "##");
                 tokens.push_back(token);
-                last_char = character;
                 cout << "Debug Scan Token collected - ";
                 token.print();
                 return;
             }
         }
-        else
-        {
-            // is title
+
+        else {                                              // * Es un titulo
             last_char = '#';
+            
             Token token(I_TITULO, "#");
             tokens.push_back(token);
             cout << "Debug Scan Token collected - ";
@@ -244,8 +251,9 @@ void scanner::recognize_token(int &index, vector<token_type> &stack)
             return;
         }
     }
-    else if(character == '*') //negrita
-    {
+    
+    // * Negrita 
+    else if(character == '*') {
         auto it = std::find(stack.begin(), stack.end(), I_NEGRITA);
         if(it != stack.end()) // fin
         {
@@ -265,6 +273,7 @@ void scanner::recognize_token(int &index, vector<token_type> &stack)
         }
         
     }
+    
     else if(character == '_') // tachado
     {
         auto it = std::find(stack.begin(), stack.end(), I_TACHADO);
@@ -285,6 +294,7 @@ void scanner::recognize_token(int &index, vector<token_type> &stack)
             token.print();
         }
     }
+    
     else if(character == '$') // tachado
     {
         auto it = std::find(stack.begin(), stack.end(), I_CURSIVA);
@@ -305,6 +315,7 @@ void scanner::recognize_token(int &index, vector<token_type> &stack)
             token.print();
         }
     }
+    
     else // word
     {
         string word;
@@ -317,30 +328,28 @@ void scanner::recognize_token(int &index, vector<token_type> &stack)
     }
 }
 
-vector<Token> scanner::get_tokens()
-{
+vector<Token> scanner::get_tokens() {
     process_text();
     return tokens;
 }
 
-char scanner::get_char(int &index)
-{
+// Get char: Devuelve el caracter en la posición index y avanza el puntero
+char scanner::get_char(int &index){
     index++;
     return text[index-1];
 }
 
-char scanner::peek_char(int index)
-{   
+// Peek char: Devuelve el caracter en la posición index
+char scanner::peek_char(int index){   
     return text[index];
 }
 
 void scanner::skip_comment(int &index)
 {
     char character;
-    do
-    {
+    do{
         character = get_char(index);
-    }while(character != '\0' && character != '\n');
+    } while(character != '\0' && character != '\n');
 
     // if(character == '\n')
     // {
@@ -351,7 +360,6 @@ void scanner::skip_comment(int &index)
     //     }
     // }
 }
-
 
 string scanner::collect_word(int &index)
 {
@@ -394,10 +402,8 @@ string scanner::collect_word(int &index)
 
 scanner::~scanner(){}
 
-int main()
-{
-
+// ########################################## MAIN FUNCTION ##############################################3
+int main() {
     scanner scan("texto.txt");
-
     scan.get_tokens();
 }
