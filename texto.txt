@@ -1,5 +1,12 @@
 
-<(rojo) esto es una prueba de color>
-<[arial] esto es una prueba de fuente>
+# titulo
+## subtitulo
+### subsubtitulo 
 
-// nada compila normal
+//<(rojo)<[arial]esto es *una prueba* de fuente>>
+
+//<{http://google.com} $google pero no estoy seguro de esto
+// y esto tambien> $
+
+// nada compila normal 
+

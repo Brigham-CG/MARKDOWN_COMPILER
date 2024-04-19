@@ -4,6 +4,9 @@
 #include <vector>
 #include <functional>
 #include <map>
+#include <regex>
+
+
 
 using namespace std;
 
@@ -23,6 +26,15 @@ string read_file(string file_path) {
     
     return content;
 }
+
+bool isURLValid(const std::string& url) {
+    // Expresión regular para una URL válida (http:// o https://)
+    std::regex urlPattern(R"(^(https?://)[^\s/$.?#].[^\s]*$)");
+    
+    // Verifica si la URL coincide con el patrón
+    return std::regex_match(url, urlPattern);
+}
+
 
 std::string reference_text = "abcdefghijklmnopqrstuvwxyz";
 std::string reference_number = "1234567890";
@@ -136,6 +148,14 @@ void Token::print() {
         std::cout << "I_OPCION' ";
     else if (type == F_OPCION)
         std::cout << "F_OPCION' ";
+    else if (type == ARIAL)
+        std::cout << "ARIAL' ";
+    else if (type == TIMES)
+        std::cout << "TIMES' ";
+    else if (type == COURIER)
+        std::cout << "COURIER' ";
+    else if (type == HELVETICA)
+        std::cout << "HELVETICA' ";
 
     //std::cout << "VALUE: '" << value <<"'\n";
     cout << "VALUE: '" << value << "' << LINE: " << lineIndex << "\n";
@@ -302,7 +322,7 @@ void scanner::recognize_token(int &index, vector<token_type> &stack) {
             //Token token(I_NEGRITA, "*");
             Token token(I_NEGRITA, "*", getNumberOfLine(index));
             tokens.push_back(token);
-            cout << "Debug SGcan Token collected - ";
+            cout << "Debug Scan Token collected - ";
             token.print();
         }
     }
@@ -465,9 +485,56 @@ void scanner::recognize_token(int &index, vector<token_type> &stack) {
             
             character = get_char(index);
 
-            if(character == ')')
+            if(character == ']')
             {
-                Token token_f_c(F_COLOR, ")", getNumberOfLine(index));
+                Token token_f_c(F_COLOR, "]", getNumberOfLine(index));
+                tokens.push_back(token_c);
+            }
+            else
+            {
+                //error de cerrar color
+            }
+
+            cout << "Debug Scan Token collected - ";
+            token_c.print();   
+        }
+        else if(next_char == '{') // font
+        {
+            // option
+            Token token_i_p(I_OPCION, "<", getNumberOfLine(index));
+            tokens.push_back(token_i_p);
+            index++;
+            cout << "Debug Scan Token collected - ";
+            token_i_p.print();
+
+            stack.push_back(I_OPCION);
+            
+            // FONT
+            Token token_i_f(I_FUENTE, "{", getNumberOfLine(index));
+            tokens.push_back(token_i_f);
+            
+            // collect color word
+            string link;
+            link += collect_word(index);
+
+            token_type t_type;
+
+            if(!isURLValid(link))
+            {
+                //error
+                
+            }
+            
+            
+            Token token_c(WORD, link, getNumberOfLine(index));
+
+            tokens.push_back(token_c);
+            
+            character = get_char(index);
+
+            if(character == '}')
+            {
+                Token token_f_c(F_COLOR, "}", getNumberOfLine(index));
                 tokens.push_back(token_c);
             }
             else
@@ -483,6 +550,8 @@ void scanner::recognize_token(int &index, vector<token_type> &stack) {
 
 
         }
+
+        
     }
     else if(character == '>')
     {
