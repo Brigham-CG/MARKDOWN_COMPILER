@@ -204,12 +204,8 @@ void scanner::recognize_token(int &index, vector<token_type> &stack) {
 
         last_char = character;
 
-        // Identificamos la linea en la que se encuentra el salto de linea
-        int line = getNumberOfLine(index);
-        cout << "[?] Line: " << line << "\n";
-
         //Token token(SALTO_DE_LINEA, "\n");
-        Token token(SALTO_DE_LINEA, "\n", line);
+        Token token(SALTO_DE_LINEA, "\n", getNumberOfLine(index));
         tokens.push_back(token);
         cout << "Debug Scan Token collected - ";
         token.print();
