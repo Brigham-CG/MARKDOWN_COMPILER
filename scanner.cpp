@@ -392,8 +392,7 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
             cout << "Debug Scan Token collected - ";
             token_i_p.print();   
             
-            //stack.push_back(I_OPCION);
-            //stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
+            stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
 
             // -> Añadimos token de INICIO DE COLOR
             Token token_i_c(I_COLOR, "(", getNumberOfLine(index));
@@ -453,6 +452,8 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
             cout << "Debug Scan Token collected - ";
             token_i_p.print();
             
+            stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
+
             // FONT
             Token token_i_f(I_FUENTE, "[", getNumberOfLine(index));
             tokens.push_back(token_i_f);
@@ -492,12 +493,61 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
 
             if(character == ']')
             {
-                Token token_f_c(F_COLOR, ")", getNumberOfLine(index));
+                Token token_f_c(F_COLOR, "]", getNumberOfLine(index));
                 tokens.push_back(token_c);
             }
             else
             {
                 cout << "[?] Error: No se cerro la fuente en la linea: " << getNumberOfLine(index) << endl;
+            }
+
+            cout << "Debug Scan Token collected - ";
+            token_c.print();   
+        }
+
+        // * URL: <{url}(word)>
+        else if(next_char == '{') 
+        {
+            // option
+            Token token_i_p(I_OPCION, "<", getNumberOfLine(index));
+            tokens.push_back(token_i_p);
+            index++;
+            cout << "Debug Scan Token collected - ";
+            token_i_p.print();
+
+            //stack.push_back(I_OPCION);
+            stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
+            
+            // FONT
+            Token token_i_f(I_FUENTE, "{", getNumberOfLine(index));
+            tokens.push_back(token_i_f);
+            
+            // collect color word
+            string link;
+            link += collect_word(index);
+
+            token_type t_type;
+
+            if(!isURLValid(link))
+            {
+                cout << "[?] Error: URL no valida en la linea: " << getNumberOfLine(index) << endl;                
+            }
+            
+            
+            Token token_c(WORD, link, getNumberOfLine(index));
+
+            tokens.push_back(token_c);
+            
+            character = get_char(index);
+
+            if(character == '}')
+            {
+                Token token_f_c(F_COLOR, "}", getNumberOfLine(index));
+                tokens.push_back(token_c);
+            }
+            else
+            {
+                cout << "[?] Error: No se cerro la URL en la linea: " << getNumberOfLine(index) << endl;
             }
 
             cout << "Debug Scan Token collected - ";
@@ -509,11 +559,10 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
 
         }
     }
+
     else if(character == '>')
     {
-        auto it = std::find(stack.begin(), stack.end(), I_OPCION);
-
-        if(it != stack.end()) // fin
+        if(findToken(I_OPCION, stack))
         {
             stack.erase(stack.begin() + stack.size() - 1);
             //Token token(F_OPCION, ">");
@@ -525,7 +574,7 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
         else
         {
             cout << "[?] Error: No se abrio una opcion en la linea: " << getNumberOfLine(index) << endl;
-        }        
+        }
     }
 
     else // word
