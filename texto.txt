@@ -1,10 +1,5 @@
 
-// this is a comment
-# titulo // comment
-##   subtitulo
-### subsubtitulo y algo mas
+<(rojo) esto es una prueba de color>
+<[arial] esto es una prueba de fuente>
 
-esto es otro _*tipo*_ de $*texto 
-y esto es mas texto*$
-
-/esto es un texto no comentario
+// nada compila normal
