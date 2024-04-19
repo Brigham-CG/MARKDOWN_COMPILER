@@ -1,9 +1,12 @@
-# Estilos especiales
-*texto en negrita*
-_texto en tachado_
-$texto en cursiva$
 
-# Estilos especiales con errores
-*texto en negrita
-_texto en tachado
-$texto en cursiva
+# titulo
+## subtitulo
+### subsubtitulo 
+
+//<(rojo)<[arial]esto es *una prueba* de fuente>>
+
+//<{http://google.com} $google pero no estoy seguro de esto
+// y esto tambien> $
+
+// nada compila normal 
+

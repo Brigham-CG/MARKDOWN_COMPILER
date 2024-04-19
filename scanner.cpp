@@ -4,6 +4,9 @@
 #include <vector>
 #include <functional>
 #include <map>
+#include <regex>
+
+
 
 using namespace std;
 
@@ -23,6 +26,15 @@ string read_file(string file_path) {
     
     return content;
 }
+
+bool isURLValid(const std::string& url) {
+    // Expresión regular para una URL válida (http:// o https://)
+    std::regex urlPattern(R"(^(https?://)[^\s/$.?#].[^\s]*$)");
+    
+    // Verifica si la URL coincide con el patrón
+    return std::regex_match(url, urlPattern);
+}
+
 
 std::string reference_text = "abcdefghijklmnopqrstuvwxyz";
 std::string reference_number = "1234567890";
@@ -131,6 +143,18 @@ void Token::print() {
         std::cout << "AZUL' ";
     else if (type == RGB)
         std::cout << "RGB' ";
+    else if (type == I_OPCION)
+        std::cout << "I_OPCION' ";
+    else if (type == F_OPCION)
+        std::cout << "F_OPCION' ";
+    else if (type == ARIAL)
+        std::cout << "ARIAL' ";
+    else if (type == TIMES)
+        std::cout << "TIMES' ";
+    else if (type == COURIER)
+        std::cout << "COURIER' ";
+    else if (type == HELVETICA)
+        std::cout << "HELVETICA' ";
 
     //std::cout << "VALUE: '" << value <<"'\n";
     cout << "VALUE: '" << value << "' << LINE: " << lineIndex << "\n";
@@ -429,7 +453,7 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
             cout << "Debug Scan Token collected - ";
             token_i_p.print();
             
-            // -> Añadimos token de INICIO DE FUENTE
+            // FONT
             Token token_i_f(I_FUENTE, "[", getNumberOfLine(index));
             tokens.push_back(token_i_f);
             
@@ -465,7 +489,8 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
             
             // -> Añadimos token de FIN DE FUENTE
             character = get_char(index);
-            if(character == ')')
+
+            if(character == ']')
             {
                 Token token_f_c(F_COLOR, ")", getNumberOfLine(index));
                 tokens.push_back(token_c);
@@ -478,25 +503,17 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
             cout << "Debug Scan Token collected - ";
             token_c.print();   
         }
-
-        // * URL: <{link} word>
-        // TO DO...
-
-        // * Es un texto
-        else
+        else // word
         {
-            string word;
-            word += character;
-            word += collect_word(index);
-            Token token(WORD, word, getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
+
+
         }
     }
-    
-    else if(character == '>') {
-        if(findToken(I_OPCION, stack)) // Si existe, lo eliminamos
+    else if(character == '>')
+    {
+        auto it = std::find(stack.begin(), stack.end(), I_OPCION);
+
+        if(it != stack.end()) // fin
         {
             stack.erase(stack.begin() + stack.size() - 1);
             //Token token(F_OPCION, ">");
@@ -584,8 +601,8 @@ string scanner::collect_word(int &index)
             }
         }
         if(character == ' ' || character == '\0' || character == '\n' ||
-             character == '*' || character == '$' || character == '_' ||
-             character == '<' || character == '>' ||
+            character == '*' || character == '$' || character == '_' ||
+            character == '<' || character == '>' ||
             character == '(' || character == ')' ||
             character == '[' || character == ']' )
         {
