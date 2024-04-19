@@ -132,6 +132,10 @@ void Token::print() {
         std::cout << "AZUL' ";
     else if (type == RGB)
         std::cout << "RGB' ";
+    else if (type == I_OPCION)
+        std::cout << "I_OPCION' ";
+    else if (type == F_OPCION)
+        std::cout << "F_OPCION' ";
 
     //std::cout << "VALUE: '" << value <<"'\n";
     cout << "VALUE: '" << value << "' << LINE: " << lineIndex << "\n";
@@ -425,6 +429,8 @@ void scanner::recognize_token(int &index, vector<token_type> &stack) {
             index++;
             cout << "Debug Scan Token collected - ";
             token_i_p.print();
+
+            stack.push_back(I_OPCION);
             
             // FONT
             Token token_i_f(I_FUENTE, "[", getNumberOfLine(index));
