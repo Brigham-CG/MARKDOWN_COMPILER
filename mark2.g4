@@ -8,9 +8,9 @@ bloque: titulo | titulo bloque
         | texto 
         | texto bloque;
 
-titulo: I_TITULO ESPACIO texto;
-subtitulo: I_SUBTITULO ESPACIO texto;
-subsubtitulo: I_SUBSUBTITULO ESPACIO texto;
+titulo: I_TITULO texto ;
+subtitulo: I_SUBTITULO texto ;
+subsubtitulo: I_SUBSUBTITULO texto ;
 
 //texto: palata | palabra texto | SALTO_DE_LINEA;
 //palabra: palabra_especial | palabra_normal;
@@ -20,35 +20,29 @@ texto: palabra | palabra texto
         | negrita | negrita texto
         | cursiva | cursiva texto
         | tachado | tachado texto
-        | color | color texto | 
+        | color | color texto 
+        | fuente | fuente texto
+        | url | url texto
         SALTO_DE_LINEA;
 
 palabra: LETRA palabra | LETRA | ESPACIO;
 
-negrita: S_NEGRITA textoEspecial S_NEGRITA;
+negrita: I_NEGRITA text F_NEGRITA;
 
-cursiva: S_CURSIVA textoEspecial S_CURSIVA;
+cursiva: I_CURSIVA textoEspecial F_CURSIVA;
 
-tachado: S_TACHADO textoEspecial S_TACHADO;
+tachado: I_TACHADO textoEspecial F_TACHADO;
 
-color: I_OPCION I_COLOR nombre_color F_COLOR textoEspecial F_OPCION;
+color: I_OPCION I_COLOR nombre_color F_COLOR texo F_OPCION;
 
-fuente: I_OPCION I_FUENTE nombre_fuente F_FUENTE textoEspecial F_OPCION;
+fuente: I_OPCION I_FUENTE nombre_fuente F_FUENTE texto F_OPCION;
 
-textoEspecial: palabra | palabr         a textoEspecial;
+url: I_OPCION I_URL word F_URL F_OPCION texto F_OPCION;
 
 nombre_color: ROJO | AMARILLO | AZUL | RGB;
 nombre_fuente: ARIAL | TIMES | COURIER | HELVETICA;
 
 // TOKENS
-
-//table example
-// | caracteristica 1 | caracteristica 2 | caracteristica 3 |...|
-// | opc 1 | opc 2 | opc 3 |...|
-// ...
-// | opc 1 | opc 2 | opc 3 |...|
-
-
 I_TITULO: '#';
 I_SUBTITULO: '##';
 I_SUBSUBTITULO: '###';

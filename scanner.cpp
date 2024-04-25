@@ -6,8 +6,6 @@
 #include <map>
 #include <regex>
 
-
-
 using namespace std;
 
 // ####################################### AUXILIAR FUNCTIONS ################################################
@@ -38,7 +36,7 @@ bool isURLValid(const std::string& url) {
 
 std::string reference_text = "abcdefghijklmnopqrstuvwxyz";
 std::string reference_number = "1234567890";
-std::string reference_special = "*\\_$<>()[]";
+std::string reference_special = "*\\_$<>()[]|";
 
 enum token_type {
 
@@ -67,7 +65,8 @@ enum token_type {
     I_URL, //'{'
     F_URL, //'}'
 
-    ESPACIO, //' '
+    BAR_TABLE, //'|'
+
     SALTO_DE_LINEA, //'\n'    
 
     LETRA, //[a-zA-Z0-9]
@@ -82,6 +81,8 @@ enum token_type {
     TIMES, //'times'
     COURIER, //'courier'
     HELVETICA, //'helvetica'
+
+    UNKNOW, // ninguno de los demas
 
 };
 
@@ -162,6 +163,8 @@ void Token::print() {
         std::cout << "I_URL' ";
     else if (type == F_URL)
         std::cout << "F_URL' ";
+    else if (type == BAR_TABLE)
+        std::cout << "BAR_TABLE' ";
 
 
     //std::cout << "VALUE: '" << value <<"'\n";
@@ -185,8 +188,20 @@ class scanner {
         int getNumberOfLine(int index);
         bool findToken( token_type type, vector<Token> stack);
 
-        bool is_comment(int &index);
-        void skip_comment(int &index);
+        void get_eol(char character, int &index);
+        void skip_comment(char character, int &index);
+        void get_titles(char character, int &index);
+        void get_special(token_type type_init, token_type type_last, vector<Token> &stack, string character, int index);
+        void get_bar_table(int index);
+        typedef token_type (scanner::*selectFunction)(const string&, int);
+        void get_init_option(token_type type_init, token_type type_last, string init_char, string last_char, vector<Token> &stack, int &index, selectFunction select_type);
+        token_type select_color(const string& color, int index);
+        token_type select_font(const string& font, int index);
+        token_type url_detector(const string& url, int index);
+        void get_close_option(vector<Token> &stack, int index);
+        void get_word(char character, int &index);
+
+        void collect_token(token_type type, string symbol, int index);
 
         string collect_word(int &index);
 
@@ -223,11 +238,10 @@ void scanner::process_text() {
     }
 }
 
-//void scanner::recognize_token(int &index, vector<token_type> &stack) {
 void scanner::recognize_token(int &index, vector<Token> &stack) {
     char character = get_char(index);
 
-    // * Espacios en blanco
+    // * Saltar espacios en blanco
     if(character == ' ') {
         last_char = character;
         return;
@@ -235,155 +249,32 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
 
     // * Salto de línea
     else if(character == '\n') {
-
-        last_char = character;
-
-        //Token token(SALTO_DE_LINEA, "\n");
-        Token token(SALTO_DE_LINEA, "\n", getNumberOfLine(index));
-        tokens.push_back(token);
-        cout << "Debug Scan Token collected - ";
-        token.print();
+        get_eol(character, index);
     }
 
-    // * Comentarios
+    // * Saltar comentarios
     else if(character == '/') {
-        char next_char = peek_char(index);
-        
-        if(next_char == '/') { // is_comment
-            skip_comment(index);
-            std::cout << "Debug Scan Comment skipped\n";
-            last_char = '\n';
-        }
-        else{   // Its a word/text
-            string word;
-            word  += character;
-            word += collect_word(index);
-
-            //Token token(WORD, word);
-            Token token(WORD, word, getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-        }
+        skip_comment(character, index);
     }
     
     // * Titulos - Subtitulos - Subsubtitulos
     else if(last_char == '\n' && character == '#') {
-        char next_char = peek_char(index);
-        
-        if(next_char == '#') {                              // * Es un subtítulo o subsubtitulo
-            index++;
-            character = next_char;
-
-            next_char= peek_char(index);
-            
-            if(next_char == '#') {                          // * Es un subsubtitulo
-                index++;
-                last_char = next_char;
-
-                //Token token(I_SUBSUBTITULO, "###");
-                Token token(I_SUBSUBTITULO, "###", getNumberOfLine(index));
-                tokens.push_back(token);
-                cout << "Debug Scan Token collected - ";
-                token.print();
-                
-                return;
-            }
-
-            else {                                          // * Es un subtitulo
-                last_char = character;
-
-                //Token token(I_SUBTITULO, "##");
-                Token token(I_SUBTITULO, "##", getNumberOfLine(index));
-                tokens.push_back(token);
-                cout << "Debug Scan Token collected - ";
-                token.print();
-                return;
-            }
-        }
-
-        else {                                              // * Es un titulo
-            last_char = '#';
-            
-            //Token token(I_TITULO, "#");
-            Token token(I_TITULO, "#", getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-            return;
-        }
+        get_titles(character, index);
     }
     
     // * Negrita 
     else if(character == '*') {
-
-        // * Buscamos si existe dentro del stack algun token de tipo I_NEGRITA
-        if(findToken(I_NEGRITA, stack)){         // Si existe, lo eliminamos
-            stack.erase(stack.begin() + stack.size() - 1);
-            //Token token(F_NEGRITA, "*");
-            Token token(F_NEGRITA, "*", getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-            return;
-        }
-        else{                                   // Si no existe, lo agregamos
-            stack.push_back(Token(I_NEGRITA, "*", getNumberOfLine(index)));
-            //Token token(I_NEGRITA, "*");
-            Token token(I_NEGRITA, "*", getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-            return;
-        }
+        get_special(I_NEGRITA,F_NEGRITA, stack, "*", index);
     }
     
     // * Tachado
     else if(character == '_') {
-
-        // * Buscamos si existe dentro del stack algun token de tipo I_TACHADO
-        if(findToken(I_TACHADO, stack)){         // Si existe, lo eliminamos
-            stack.erase(stack.begin() + stack.size() - 1);
-            //Token token(F_TACHADO, "_");
-            Token token(F_TACHADO, "_", getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-            return;
-        }
-        else{                                   // Si no existe, lo agregamos
-            stack.push_back(Token(I_TACHADO, "_", getNumberOfLine(index)));
-            //Token token(I_TACHADO, "_");
-            Token token(I_TACHADO, "_", getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-            return;
-        }
+        get_special(I_TACHADO, F_TACHADO, stack, "_", index);
     }
     
     // * Cursiva
     else if(character == '$'){
-
-        // * Buscamos si existe dentro del stack algun token de tipo I_CURSIVA
-        if(findToken(I_CURSIVA, stack)){         // Si existe, lo eliminamos
-            stack.erase(stack.begin() + stack.size() - 1);
-            //Token token(F_CURSIVA, "$");
-            Token token(F_CURSIVA, "$", getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-            return;
-        }
-        else{                                   // Si no existe, lo agregamos
-            stack.push_back(Token(I_CURSIVA, "$", getNumberOfLine(index)));
-            //Token token(I_CURSIVA, "$");
-            Token token(I_CURSIVA, "$", getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-            return;
-        }
+        get_special(I_TACHADO, F_TACHADO, stack, "*", index);
     }
     
     // Color, Fuente, URL: 
@@ -393,205 +284,227 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
         
         // * Color: <(color) word>
         if(next_char == '(') {
-            // -> Añadimos token de INICIO DE OPCION
-            Token token_i_p(I_OPCION, "<", getNumberOfLine(index));
-            tokens.push_back(token_i_p);
-            index++;
-            cout << "Debug Scan Token collected - ";
-            token_i_p.print();   
-            
-            stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
-
-            // -> Añadimos token de INICIO DE COLOR
-            Token token_i_c(I_COLOR, "(", getNumberOfLine(index));
-            tokens.push_back(token_i_c);
-        
-            // Collect color word
-            string color;
-            color += collect_word(index);
-
-            token_type t_type;
-            if(color == "rojo")
-            {
-                t_type = ROJO;
-            }
-            else if(color == "amarillo")
-            {
-                t_type = AMARILLO;
-            }
-            else if(color == "azul")
-            {
-                t_type = AZUL;
-            }
-            else if(color == "rgb")
-            {
-                t_type = RGB;
-            }
-            else
-            {
-                cout << "[?] Error: Color no reconocido en la linea: " << getNumberOfLine(index) << endl;
-            }
-            
-            Token token_c(t_type, color, getNumberOfLine(index));
-            tokens.push_back(token_c);
-            
-            // -> Añadimos token de FIN DE COLOR
-            character = get_char(index);
-            if(character == ')')
-            {
-                Token token_f_c(F_COLOR, ")", getNumberOfLine(index));
-                tokens.push_back(token_c);
-            }
-            else
-            {
-                cout << "[?] Error: No se cerro el color en la linea: " << getNumberOfLine(index) << endl;
-            }
-
-            cout << "Debug Scan Token collected - ";
-            token_c.print();   
+           get_init_option(I_COLOR, F_COLOR, "(", ")", stack, index, &scanner::select_color);  
         }
 
         // * Fuente: <[font] word>
         else if(next_char == '[') {
-            // -> Añadimos token de INICIO DE OPCION
-            Token token_i_p(I_OPCION, "<", getNumberOfLine(index));
-            tokens.push_back(token_i_p);
-            index++;
-            cout << "Debug Scan Token collected - ";
-            token_i_p.print();
-            
-            stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
-
-            // FONT
-            Token token_i_f(I_FUENTE, "[", getNumberOfLine(index));
-            tokens.push_back(token_i_f);
-            
-            // collect color word
-            string font;
-            font += collect_word(index);
-
-            token_type t_type;
-
-            if(font == "arial")
-            {
-                t_type = ARIAL;
-            }
-            else if(font == "times")
-            {
-                t_type = TIMES;
-            }
-            else if(font == "courier")
-            {
-                t_type = COURIER;
-            }
-            else if(font == "helvetica")
-            {
-                t_type = HELVETICA;
-            }
-            else
-            {
-                cout << "[?] Error: Fuente no reconocida en la linea: " << getNumberOfLine(index) << endl; 
-            }
-            
-            Token token_c(t_type, font, getNumberOfLine(index));
-            tokens.push_back(token_c);
-            
-            // -> Añadimos token de FIN DE FUENTE
-            character = get_char(index);
-
-            if(character == ']')
-            {
-                Token token_f_c(F_COLOR, "]", getNumberOfLine(index));
-                tokens.push_back(token_c);
-            }
-            else
-            {
-                cout << "[?] Error: No se cerro la fuente en la linea: " << getNumberOfLine(index) << endl;
-            }
-
-            cout << "Debug Scan Token collected - ";
-            token_c.print();   
+            get_init_option(I_FUENTE, F_FUENTE, "[", "]", stack, index, &scanner::select_font);
         }
-
         // * URL: <{url}(word)>
         else if(next_char == '{') 
         {
-            // option
-            Token token_i_p(I_OPCION, "<", getNumberOfLine(index));
-            tokens.push_back(token_i_p);
-            index++;
-            cout << "Debug Scan Token collected - ";
-            token_i_p.print();
-
-            //stack.push_back(I_OPCION);
-            stack.push_back(Token(I_OPCION, "{", getNumberOfLine(index)));
-            
-            // collect color word
-            string link;
-            link += collect_word(index);
-
-            token_type t_type;
-
-            if(!isURLValid(link))
-            {
-                cout << "[?] Error: URL no valida en la linea: " << getNumberOfLine(index) << endl;                
-            }
-            
-            
-            Token token_c(WORD, link, getNumberOfLine(index));
-
-            tokens.push_back(token_c);
-            
-            character = get_char(index);
-
-            if(character == '}')
-            {
-                Token token_f_c(F_URL, "}", getNumberOfLine(index));
-                tokens.push_back(token_c);
-            }
-            else
-            {
-                cout << "[?] Error: No se cerro la URL en la linea: " << getNumberOfLine(index) << endl;
-            }
-
-            cout << "Debug Scan Token collected - ";
-            token_c.print();   
-        }
-        else // word
-        {
-
-
+            get_init_option(I_URL, F_URL, "{", "}", stack, index, &scanner::url_detector);
         }
     }
-
-    else if(character == '>')
+    else if(character == '>') // * CLOSE OPTION
     {
-        if(findToken(I_OPCION, stack))
-        {
-            stack.erase(stack.begin() + stack.size() - 1);
-            //Token token(F_OPCION, ">");
-            Token token(F_OPCION, ">", getNumberOfLine(index));
-            tokens.push_back(token);
-            cout << "Debug Scan Token collected - ";
-            token.print();
-        }
-        else
-        {
-            cout << "[?] Error: No se abrio una opcion en la linea: " << getNumberOfLine(index) << endl;
-        }
+        get_close_option(stack, index);
     }
-
-    else // word
+    else if (character == '|') // * TABLE
     {
-        string word;
-        word += character;
-        word += collect_word(index);
-        Token token(WORD, word, getNumberOfLine(index));
-        tokens.push_back(token);
-        cout << "Debug Scan Token collected - ";
-        token.print();
+        get_bar_table(index);
+    }
+    else // * Word
+    {
+        get_word(character, index);
     }
 }
+
+void scanner::get_eol(char character, int &index)
+{
+    last_char = character;
+    collect_token(SALTO_DE_LINEA, "\n", index);
+}
+
+void scanner::skip_comment(char character, int &index)
+{
+    char next_char = peek_char(index);
+    
+    if(next_char == '/') { // is_comment
+        do{
+            character = get_char(index);
+        } while(character != '\0' && character != '\n');
+
+        // if(character == '\n')
+        // {
+        //     if(peek_char(index) != '\0')
+        //     {
+        //         Token token(SALTO_DE_LINEA, "\n");
+        //         tokens.push_back(token);
+        //     }
+        // }
+        std::cout << "Debug Scan Comment skipped\n";
+        last_char = '\n';
+    }
+    else{   // Its a word/text
+        get_word(character, index);
+    }
+}
+
+void scanner::get_titles(char character, int &index)
+{
+    char next_char = peek_char(index);
+    
+    if(next_char == '#') {                              // * Es un subtítulo o subsubtitulo
+        index++;
+        character = next_char;
+
+        next_char= peek_char(index);
+        
+        if(next_char == '#') {                          // * Es un subsubtitulo
+            index++;
+            last_char = next_char;
+            collect_token(I_SUBSUBTITULO, "###", index);
+            return;
+        }
+
+        else {                                          // * Es un subtitulo
+            last_char = character;
+
+            collect_token(I_SUBTITULO, "##", index);    
+            
+            return;
+        }
+    }
+    else {                                              // * Es un titulo
+        last_char = '#';
+        collect_token(I_TITULO, "#", index);
+        return;
+    }
+}
+
+void scanner::get_special(token_type type_init, token_type type_last, vector<Token> &stack, string character, int index)
+{
+    // * Buscamos si existe dentro del stack algun token de tipo I_TACHADO
+    if(findToken(type_init, stack)){         // Si existe, lo eliminamos
+        stack.erase(stack.begin() + stack.size() - 1);
+        collect_token(type_last, character, index);
+    }
+    else{                                   // Si no existe, lo agregamos
+        stack.push_back(Token(type_init, character, getNumberOfLine(index)));
+        collect_token(type_init, character, index);
+    }
+}
+
+void scanner::get_bar_table(int index)
+{
+    collect_token(BAR_TABLE, "|", index);
+}
+
+void scanner::get_init_option(
+    token_type type_init, token_type type_last,
+     string init_char, string last_char,
+      vector<Token> &stack, int &index,
+       selectFunction select_type)
+{
+     // -> Añadimos token de INICIO DE OPCION
+    collect_token(I_OPCION, "<", index);   
+    
+    index++;
+    stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
+
+    // -> Añadimos token de INICIO DE COLOR
+    Token token_i_c(type_init, init_char, getNumberOfLine(index));
+    tokens.push_back(token_i_c);
+
+    // Collect color word
+    string select;
+    select += collect_word(index);
+
+    token_type t_type = (this->*select_type) (select, index);
+
+    collect_token(t_type, select, index);
+    
+    // -> Añadimos token de FIN DE COLOR
+    string character;
+    character += get_char(index);
+    if(character == last_char)
+    {
+        Token token_f_c(type_last, last_char, getNumberOfLine(index));
+        tokens.push_back(token_f_c);
+    }
+    else
+    {
+        cout << "[?] Error: No se cerro en la linea: " << getNumberOfLine(index) << endl;
+    }
+}
+
+token_type scanner::select_color(const string& color, int index)
+{
+    token_type t_type;
+
+    if(color == "rojo")
+        t_type = ROJO;
+    else if(color == "amarillo")
+        t_type = AMARILLO;
+    else if(color == "azul")
+        t_type = AZUL;
+    else if(color == "rgb")
+        t_type = RGB;
+    else{
+        cout << "[?] Error: Color no reconocido en la linea: " << getNumberOfLine(index) << endl;
+        t_type = UNKNOW;
+    }
+    return t_type;
+}
+
+token_type scanner::select_font(const string& font, int index)
+{
+    token_type t_type;
+
+    if(font == "arial")
+        t_type = ARIAL;
+    else if(font == "times")
+        t_type = TIMES;
+    else if(font == "courier")
+        t_type = COURIER;
+    else if(font == "helvetica")
+        t_type = HELVETICA;
+    else
+    {
+        cout << "[?] Error: Fuente no reconocida en la linea: " << getNumberOfLine(index) << endl;
+        t_type = UNKNOW; 
+    }
+    return t_type;
+}
+
+token_type scanner::url_detector(const string& url, int index)
+{
+
+    token_type t_type = WORD;
+
+    if(!isURLValid(url))
+    {
+        t_type = UNKNOW;
+        cout << "[?] Error: URL no valida en la linea: " << getNumberOfLine(index) << endl;                
+    }
+    return t_type;
+}
+
+void scanner::get_close_option(vector<Token> &stack, int index)
+{
+    if(findToken(I_OPCION, stack))
+    {
+        stack.erase(stack.begin() + stack.size() - 1);
+        collect_token(F_OPCION, ">", index);
+    }
+    else
+    {
+        cout << "[?] Error: No se abrio una opcion en la linea: " << getNumberOfLine(index) << endl;
+    }
+
+}
+
+void scanner::get_word(char character, int &index)
+{
+    string word;
+    word += character;
+    word += collect_word(index);
+
+    collect_token(WORD, word,index);
+}
+
 
 vector<Token> scanner::get_tokens() {
     process_text();
@@ -607,22 +520,6 @@ char scanner::get_char(int &index){
 // Peek char: Devuelve el caracter en la posición index
 char scanner::peek_char(int index){   
     return text[index];
-}
-
-void scanner::skip_comment(int &index){
-    char character;
-    do{
-        character = get_char(index);
-    } while(character != '\0' && character != '\n');
-
-    // if(character == '\n')
-    // {
-    //     if(peek_char(index) != '\0')
-    //     {
-    //         Token token(SALTO_DE_LINEA, "\n");
-    //         tokens.push_back(token);
-    //     }
-    // }
 }
 
 string scanner::collect_word(int &index)
@@ -658,7 +555,8 @@ string scanner::collect_word(int &index)
             character == '<' || character == '>' ||
             character == '(' || character == ')' ||
             character == '[' || character == ']' ||
-            character == '{' || character == '}' )
+            character == '{' || character == '}' || 
+            character == '|' )
         {
             break;
         }
@@ -686,7 +584,15 @@ bool scanner::findToken( token_type type, vector<Token> stack){
         }
     }
     return false;
-    }
+}
+
+void scanner::collect_token(token_type type, string symbol, int index)
+{
+    Token token(type, symbol, getNumberOfLine(index));
+    tokens.push_back(token);
+    cout << "Debug Scan Token collected - ";
+    token.print();   
+}
 
 scanner::~scanner(){}
 

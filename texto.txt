@@ -1,14 +1,13 @@
 
-# titulo
-## subtitulo
-### subsubtitulo 
+# Ddos attack
 
-//<(rojo)<[arial]esto es *una prueba* de fuente>>
 
-<{https://google.com} google>
+* este texto *esta en* negrita*
 
-//<{http://google.com} $google pero no estoy seguro de esto
-// y esto tambien> $
+//| caracteristica | descripcion | tipo |
+//| syn flood | sobrecarga con inundacion con trafico tcp syn | 4 layer attack |
+//| http flood | sobrecarga con inundacion con trafico http | 7 layer attack |
 
-// nada compila normal 
-
+<(amarillo) esto esta en amarillo>
+<[arial] esto esta en arial>
+<{https://google.com} click aqui>
