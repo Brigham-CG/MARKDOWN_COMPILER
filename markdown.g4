@@ -1,61 +1,86 @@
-grammar markdown;
+grammar mark2;
 
 documento: bloque;
 
-bloque: titulo | titulo bloque
-        | subtitulo | subtitulo bloque
-        | subsubtitulo | subsubtitulo bloque
-        | texto 
-        | texto bloque;
+//bloque: titulo | titulo bloque
+//        | subtitulo | subtitulo bloque
+//        | subsubtitulo | subsubtitulo bloque
+//        | texto | texto bloque;
 
-titulo: I_TITULO ESPACIO texto;
-subtitulo: I_SUBTITULO ESPACIO texto;
-subsubtitulo: I_SUBSUBTITULO ESPACIO texto;
+// Bloque en LL1
+bloque: titulo bloquePrima 
+        | subtitulo bloquePrima 
+        | subsubtitulo bloquePrima 
+        | texto bloquePrima;
 
-//texto: palata | palabra texto | SALTO_DE_LINEA;
-//palabra: palabra_especial | palabra_normal;
-//palabra_especial: negrita | cursiva | tachado | color | fuente;
+bloquePrima: bloque | EOF;
 
-texto: palabra | palabra texto
-        | negrita | negrita texto
-        | cursiva | cursiva texto
-        | tachado | tachado texto
-        | color | color texto | 
+
+titulo: I_TITULO ESPACIO texto ;
+subtitulo: I_SUBTITULO ESPACIO texto ;
+subsubtitulo: I_SUBSUBTITULO ESPACIO texto ;
+
+texto:  palabra texto | palabra |
+        palabra_especial texto | palabra_especial |
         SALTO_DE_LINEA;
 
-palabra: LETRA palabra | LETRA | ESPACIO;
+// Texto en LL1
+//texto:  palabra textoPrima 
+//        | palabra_especial textoPrima
+//        | SALTO_DE_LINEA;
 
-negrita: S_NEGRITA textoEspecial S_NEGRITA;
+//textoPrima: texto | EOF;
 
-cursiva: S_CURSIVA textoEspecial S_CURSIVA;
+//palabra: LETRA | 
+//        LETRA palabra | 
+//        ESPACIO ;
+palabra: LETRA | ESPACIO;
 
-tachado: S_TACHADO textoEspecial S_TACHADO;
+// Palabra en LL1
+//palabra: LETRA palabraPrima
+//        | ESPACIO palabraPrima;
 
-color: I_OPCION I_COLOR nombre_color F_COLOR textoEspecial F_OPCION;
+//palabraPrima: palabra | EOF;
 
-fuente: I_OPCION I_FUENTE nombre_fuente F_FUENTE textoEspecial F_OPCION;
 
-textoEspecial: palabra | palabr         a textoEspecial;
+
+
+palabra_especial: negrita | 
+                cursiva |      
+                tachado | 
+                color | 
+                fuente | 
+                url;
+
+negrita: I_NEGRITA texto F_NEGRITA;
+
+cursiva: I_CURSIVA texto F_CURSIVA;
+
+tachado: I_TACHADO texto F_TACHADO;
+
+color: I_OPCION I_COLOR nombre_color F_COLOR texto F_OPCION;
+
+fuente: I_OPCION I_FUENTE nombre_fuente F_FUENTE texto F_OPCION;
+
+url: I_OPCION I_URL nombre_url F_URL F_OPCION texto F_OPCION;
 
 nombre_color: ROJO | AMARILLO | AZUL | RGB;
 nombre_fuente: ARIAL | TIMES | COURIER | HELVETICA;
+nombre_url: LINK1 | LINK2 | LINK3;
 
 // TOKENS
-
-//table example
-// | caracteristica 1 | caracteristica 2 | caracteristica 3 |...|
-// | opc 1 | opc 2 | opc 3 |...|
-// ...
-// | opc 1 | opc 2 | opc 3 |...|
-
-
 I_TITULO: '#';
 I_SUBTITULO: '##';
 I_SUBSUBTITULO: '###';
 
-S_NEGRITA: '*';
-S_CURSIVA: '$';
-S_TACHADO: '_';
+I_NEGRITA: '*'; 
+F_NEGRITA: '@';
+
+I_CURSIVA: '1$'; 
+F_CURSIVA: '2$';
+
+I_TACHADO: '1_'; 
+F_TACHADO: '2_';
 
 I_OPCION: '<';
 F_OPCION: '>';
@@ -83,3 +108,7 @@ ARIAL: 'arial';
 TIMES: 'times';
 COURIER: 'courier';
 HELVETICA: 'helvetica';
+
+LINK1: 'https://google.com';
+LINK2: 'https://facebook.com';
+LINK3: 'https://twitter.com';

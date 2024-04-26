@@ -8,6 +8,13 @@
 //| syn flood | sobrecarga con inundacion con trafico tcp syn | 4 layer attack |
 //| http flood | sobrecarga con inundacion con trafico http | 7 layer attack |
 
-<(amarillo) esto esta en amarillo>
-<[arial] esto esta en arial>
+<(rojo) esto esta en color>
+<[arial] esto esta en fuente>
 <{https://google.com} click aqui>
+
+# titulo1 
+texto normal
+texto en *negrita*
+texto en anidado *hola $como _estas_$*
+<(rojo) esto esta en color>
+<[arial] esto esta en fuente>
