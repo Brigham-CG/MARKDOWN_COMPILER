@@ -1,3 +1,5 @@
 .vscode/*
 *.exe
 scanner
+mark*
+!mark2.g4

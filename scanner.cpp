@@ -284,7 +284,7 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
         
         // * Color: <(color) word>
         if(next_char == '(') {
-           get_init_option(I_COLOR, F_COLOR, "(", ")", stack, index, &scanner::select_color);  
+            get_init_option(I_COLOR, F_COLOR, "(", ")", stack, index, &scanner::select_color);  
         }
 
         // * Fuente: <[font] word>
@@ -394,9 +394,9 @@ void scanner::get_bar_table(int index)
 
 void scanner::get_init_option(
     token_type type_init, token_type type_last,
-     string init_char, string last_char,
-      vector<Token> &stack, int &index,
-       selectFunction select_type)
+    string init_char, string last_char,
+    vector<Token> &stack, int &index,
+    selectFunction select_type)
 {
      // -> Añadimos token de INICIO DE OPCION
     collect_token(I_OPCION, "<", index);   
@@ -596,7 +596,7 @@ void scanner::collect_token(token_type type, string symbol, int index)
 
 scanner::~scanner(){}
 
-// ########################################## MAIN FUNCTION ##############################################3
+// ########################################## MAIN FUNCTION ##############################################
 int main() {
     scanner scan("texto.txt");
     scan.get_tokens();

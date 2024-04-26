@@ -1,55 +1,58 @@
-grammar markdown;
+grammar mark2;
 
 documento: bloque;
 
 bloque: titulo | titulo bloque
         | subtitulo | subtitulo bloque
         | subsubtitulo | subsubtitulo bloque
-        | texto 
-        | texto bloque;
+        | texto | texto bloque;
 
-titulo: I_TITULO texto ;
-subtitulo: I_SUBTITULO texto ;
-subsubtitulo: I_SUBSUBTITULO texto ;
+titulo: I_TITULO ESPACIO texto ;
+subtitulo: I_SUBTITULO ESPACIO texto ;
+subsubtitulo: I_SUBSUBTITULO ESPACIO texto ;
 
-//texto: palata | palabra texto | SALTO_DE_LINEA;
-//palabra: palabra_especial | palabra_normal;
-//palabra_especial: negrita | cursiva | tachado | color | fuente;
-
-texto: palabra | palabra texto
-        | negrita | negrita texto
-        | cursiva | cursiva texto
-        | tachado | tachado texto
-        | color | color texto 
-        | fuente | fuente texto
-        | url | url texto
+texto:  palabra texto | palabra |
+        palabra_especial texto | palabra_especial |
         SALTO_DE_LINEA;
 
 palabra: LETRA palabra | LETRA | ESPACIO;
 
-negrita: I_NEGRITA text F_NEGRITA;
+palabra_especial: negrita | 
+                cursiva |      
+                tachado | 
+                color | 
+                fuente | 
+                url;
 
-cursiva: I_CURSIVA textoEspecial F_CURSIVA;
+negrita: I_NEGRITA texto I_NEGRITA;
 
-tachado: I_TACHADO textoEspecial F_TACHADO;
+cursiva: I_CURSIVA texto I_CURSIVA;
 
-color: I_OPCION I_COLOR nombre_color F_COLOR texo F_OPCION;
+tachado: I_TACHADO texto I_TACHADO;
+
+color: I_OPCION I_COLOR nombre_color F_COLOR texto F_OPCION;
 
 fuente: I_OPCION I_FUENTE nombre_fuente F_FUENTE texto F_OPCION;
 
-url: I_OPCION I_URL word F_URL F_OPCION texto F_OPCION;
+url: I_OPCION I_URL nombre_url F_URL F_OPCION texto F_OPCION;
 
 nombre_color: ROJO | AMARILLO | AZUL | RGB;
 nombre_fuente: ARIAL | TIMES | COURIER | HELVETICA;
+nombre_url: LINK1 | LINK2 | LINK3;
 
 // TOKENS
 I_TITULO: '#';
 I_SUBTITULO: '##';
 I_SUBSUBTITULO: '###';
 
-S_NEGRITA: '*';
-S_CURSIVA: '$';
-S_TACHADO: '_';
+I_NEGRITA: '*'; 
+//F_NEGRITA: '*';
+
+I_CURSIVA: '$'; 
+//F_CURSIVA: '$';
+
+I_TACHADO: '_'; 
+//F_TACHADO: '_';
 
 I_OPCION: '<';
 F_OPCION: '>';
@@ -77,3 +80,7 @@ ARIAL: 'arial';
 TIMES: 'times';
 COURIER: 'courier';
 HELVETICA: 'helvetica';
+
+LINK1: 'https://www.google.com';
+LINK2: 'https://www.facebook.com';
+LINK3: 'https://www.twitter.com';
