@@ -1,6 +1,7 @@
 .vscode/*
 *.exe
 scanner
-mark*
+mark2*
+mark3*
 !mark2.g4
 !mark2Backup.g4
