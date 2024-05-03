@@ -69,7 +69,6 @@ enum token_type {
 
     SALTO_DE_LINEA, //'\n'    
 
-    LETRA, //[a-zA-Z0-9]
     WORD, // //[a-zA-Z0-9]
 
     ROJO, //'rojo'
@@ -98,6 +97,7 @@ class Token
         Token(token_type i_type, string i_value);                   // Constructor
         Token(token_type i_type, string i_value, int i_lineIndex);  // Constructor
         void print();
+        char get_char();
         ~Token();
 
 };
@@ -113,6 +113,63 @@ Token::Token(token_type i_type, string i_value, int i_lineIndex)
     type = i_type;
     value = i_value;
     lineIndex = i_lineIndex;
+}
+
+char Token::get_char()
+{
+    if(type == I_TITULO)
+        return 'T';
+    else if(type == I_SUBTITULO)
+        return 'S';
+    else if(type == I_SUBSUBTITULO)
+        return 'Z';
+    else if(type == WORD)
+        return 'W';
+    else if (type == SALTO_DE_LINEA)
+        return 'N';
+    else if (type == I_NEGRITA)
+        return '1';
+    else if (type == F_NEGRITA)
+        return '2';
+    else if (type == I_TACHADO)
+        return '3';
+    else if (type == F_TACHADO)
+        return '4';
+    else if (type == I_CURSIVA)
+        return '5';
+    else if (type == F_CURSIVA)
+        return '6';
+    else if (type == ROJO)
+        return 'R';
+    else if (type == AMARILLO)
+        return 'Y';
+    else if (type == AZUL)
+        return 'B';
+    else if (type == I_OPCION)
+        return '<';
+    else if (type == F_OPCION)
+        return '>';
+    else if (type == I_COLOR)
+        return '(';
+    else if (type == F_COLOR)
+        return ')';
+    else if (type == I_CURSIVA)
+        return '[';
+    else if (type == F_CURSIVA)
+        return ']';
+    else if (type == ARIAL)
+        return 'A';
+    else if (type == TIMES)
+        return 'M';
+    else if (type == COURIER)
+        return 'C';
+    else if (type == HELVETICA)
+        return 'H' ;
+    else if (type == I_URL)
+        return '{';
+    else if (type == F_URL)
+        return '}';
+    return ' ';
 }
 
 void Token::print() {
@@ -493,7 +550,6 @@ void scanner::get_close_option(vector<Token> &stack, int index)
     {
         cout << "[?] Error: No se abrio una opcion en la linea: " << getNumberOfLine(index) << endl;
     }
-
 }
 
 void scanner::get_word(char character, int &index)
@@ -596,8 +652,90 @@ void scanner::collect_token(token_type type, string symbol, int index)
 
 scanner::~scanner(){}
 
+
+// ########################################## PARSER ########################################
+
+struct ProductionRule {
+    char nonTerminal;
+    string production;
+};
+
+
+class Parser
+{
+    private:
+        void initializeParsingTable();
+        unordered_map<char, unordered_map<char, ProductionRule>> parsingTable;
+    public:
+        Parser(vector<Token> input_tokens);
+        bool parsing_ll1(vector<Token> tokens);
+        bool is_valid_terminal(char character);
+};
+
+Parser::Parser(vector<Token> input_tokens)
+{   
+    initializeParsingTable();
+
+    if(parsing_ll1(input_tokens))
+        cout<<"[+] El codigo fuente fue correctamente parseado!"<<endl;
+    else
+        cout<<"[-] El codigo fuente es incorrecto!"<<endl;
+}
+
+bool Parser::is_valid_terminal(char character) {
+    // Lista de terminales válidos según la función get_char() de la clase Token
+    const string validTerminals = "TSZW123456RYBN<>()[]AMCH{}";
+
+    // Verifica si el carácter está presente en la lista de terminales válidos
+    return validTerminals.find(character) != string::npos;
+}
+
+void Parser::initializeParsingTable()
+{
+    // table here
+}
+
+bool Parser::parsing_ll1(vector<Token> input_tokens)
+{
+    stack<char> parseStack;
+    parseStack.push('$');
+    parseStack.push('d'); 
+
+    size_t pos = 0;
+    char currentSymbol = parseStack.top();
+    char inputSymbol = input_tokens[pos].get_char();
+
+    while (!parseStack.empty()) {
+        currentSymbol = parseStack.top();
+        inputSymbol = input_tokens[pos].get_char();
+
+        if (currentSymbol == inputSymbol && currentSymbol == '$') {
+            // Fin del análisis
+            return true;
+        } else if (currentSymbol == inputSymbol) {
+            // avanzar en la entrada y la pila
+            parseStack.pop();
+            pos++;
+        } else if (is_valid_terminal(currentSymbol) && parsingTable[currentSymbol].find(inputSymbol) != parsingTable[currentSymbol].end()) {
+            parseStack.pop();
+            string production = parsingTable[currentSymbol][inputSymbol].production;
+            for (int i = production.size() - 1; i >= 0; --i) {
+                if (production[i] != ' ') {
+                    parseStack.push(production[i]);
+                }
+            }
+        } else {
+            // Error de sintaxis
+            return false;
+        }
+    }
+    return false;
+}
+
 // ########################################## MAIN FUNCTION ##############################################
 int main() {
     scanner scan("texto.txt");
-    scan.get_tokens();
+    vector<Token> tokens = scan.get_tokens();
+
+    Parser pars(tokens);
 }
