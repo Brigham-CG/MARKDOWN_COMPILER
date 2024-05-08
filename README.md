@@ -14,7 +14,7 @@ https://jsmachines.sourceforge.net/machines/ll1.html
 
 ```bash
 make
-./main
+./main.exe
 ```
 Modificar el archivo 'texto.gramatic' antes para colocar tu propio texto 
 
