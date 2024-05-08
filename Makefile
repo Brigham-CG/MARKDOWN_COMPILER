@@ -1,7 +1,6 @@
 all: run
 
 run:
-	g++ scanner.cpp -o scanner.exe
-
+	g++ main.cpp -o main.exe
 clean:
 	rm -f *.exe

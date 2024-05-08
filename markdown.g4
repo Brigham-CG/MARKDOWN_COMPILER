@@ -1,15 +1,22 @@
-grammar mark3;
+grammar markdown;
 
+
+// antlr4 gramar version
 
 documento: bloque;
-bloque: linea bloque |
-    '#' texto SALTO_DE_LINEA bloque |
-    '?' texto SALTO_DE_LINEA bloque |
-    '!' texto SALTO_DE_LINEA bloque |
-     ;
-    
-linea: texto SALTO_DE_LINEA ;
-texto: PALABRA texto | texto_especial texto |;
+bloque: parrafo bloque |
+    SALTO_DE_LINEA bloque |
+    titulo bloque |
+    subtitulo bloque |
+    subsubtitulo bloque | ;
+
+titulo: I_TITULO texto F_TITULO;
+subtitulo: I_SUBTITULO texto  F_SUBTITULO;
+subsubtitulo: I_SUBSUBTITULO texto F_SUBSUBTITULO;
+
+parrafo: I_PARRAFO texto F_PARRAFO;
+
+texto: PALABRA texto | SALTO_DE_LINEA texto | texto_especial texto |;
 
 texto_especial: negrita | cursiva | tachado | opcion;
 
@@ -25,11 +32,18 @@ color: I_COLOR nombre_color F_COLOR texto ;
 fuente: I_FUENTE nombre_fuente F_FUENTE texto;
 url: I_URL nombre_url F_URL texto;
 
-
 nombre_color: ROJO | AZUL | AMARILLO; 
 nombre_fuente: ARIAL | TIMES | COURIER;
 nombre_url: LINK1 | LINK2 | LINK3;
 
+I_TITULO: '<h1>';
+F_TITULO: '</h1>';
+I_SUBTITULO: '<h2>';
+F_SUBTITULO: '</h2>';
+I_SUBSUBTITULO: '<h3>';
+F_SUBSUBTITULO: '</h3>';
+I_PARRAFO: '<p>';
+F_PARRAFO: '</p>';
 I_NEGRITA: '1*'; 
 F_NEGRITA: '2*';
 I_CURSIVA: '1$'; 
@@ -57,82 +71,66 @@ LINK3: 'linkc';
 PALABRA: 'hola ';
 SALTO_DE_LINEA:  '\n';
 
+// example input: 
+/*
+<h1>hola hola hola hola hola hola </h1>
+<h2>hola hola hola </h2>
 
-// documento=bloque;
-// bloque=linea,bloque|"#", texto,SALTODELINEA,bloque|;
-// linea=texto,SALTODELINEA;
-// texto= PALABRA,texto | textoespecial,texto |;
-// textoespecial= negrita | cursiva | tachado;
-// negrita= INEGRITA,texto,FNEGRITA;
-// cursiva= ICURSIVA, texto, FCURSIVA;
-// tachado= ITACHADO, texto,FTACHADO;
-// PALABRA="hola ";
-// SALTODELINEA="\n";
-// INEGRITA="1*"; 
-// FNEGRITA="2*";
-// ICURSIVA= "1$"; 
-// FCURSIVA= "2$";
-// ITACHADO= "1_"; 
-// FTACHADO= "2_";
+<h3>hola hola hola hola </h3>
 
-documento = bloque;
-bloque = linea, bloque
-       | "#", texto, SALTODELINEA, bloque
-       | "?", texto, SALTODELINEA, bloque
-       | "!", texto, SALTODELINEA, bloque
-       |;
-linea = texto, SALTODELINEA;
-texto = PALABRA, texto
-       | textoespecial, texto
-       |;
-textoespecial = negrita
-               | cursiva
-               | tachado
-               | opcion;
-negrita = INEGRITA, texto, FNEGRITA;
-cursiva = ICURSIVA, texto, FCURSIVA;
-tachado = ITACHADO, texto, FTACHADO;
+<p>hola hola hola hola hola 
+hola hola hola hola hola hola hola hola 
+hola hola hola hola 1*hola hola 2*</p>
+<p>hola hola 1$hola 1*hola hola 
+hola 2*1_hola hola 2_2$hola hola hola hola hola 
+hola hola hola hola 1*hola hola 2*</p>
+<p><(rojo)hola 1*hola 2*>
+<[arial]hola hola 1$hola hola 2$>hola 
+<{linka}hola hola hola hola hola hola hola >
+</p>
+*/
 
-opcion= IOPCION, tipo, FOPCION;
+/*
+Sourhce Forge Calculator Version
+: https://jsmachines.sourceforge.net/machines/ll1.html
 
-tipo= color | fuente | url;
 
-color = ICOLOR, nombrecolor, FCOLOR, texto;
-fuente = IFUENTE, nombrefuente, FFUENTE, texto;
-url = IURL, nombreurl, FURL, texto;
 
-nombrecolor = ROJO
-             | AZUL
-             | AMARILLO;
-nombrefuente = ARIAL
-              | TIMES
-              | COURIER;
-nombreurl = LINK1
-           | LINK2
-           | LINK3;
+// 1t hola hola hola hola hola hola 2t \n 1s hola hola hola 2s \n \n 1z hola hola hola hola 2z  \n 1p hola hola hola hola hola \n hola hola hola hola hola hola hola hola \n hola hola hola hola 1* hola hola 2* 2p \n 1p hola hola 1+ hola 1* hola hola \n hola 2* 1_ hola hola 2_ 2+ hola hola hola hola hola \n hola hola hola hola 1* hola hola 2* 2p \n 1p < ( rojo ) hola 1* hola 2* > \n < [ arial ] hola hola 1+ hola 2+ > \n hola \n < { linka } hola hola hola hola hola hola hola > \n 2p \n    
 
-PALABRA = "hola ";
-SALTODELINEA = "\n";
-INEGRITA = "1*";
-FNEGRITA = "2*";
-ICURSIVA = "1$";
-FCURSIVA = "2$";
-ITACHADO = "1_";
-FTACHADO = "2_";
-IOPCION = "<";
-FOPCION = ">";
-ICOLOR = "(";
-FCOLOR = ")";
-IFUENTE = "[";
-FFUENTE = "]";
-IURL = "{";
-FURL = "}";
-ROJO = "rojo";
-AZUL = "azul";
-AMARILLO = "amarillo";
-ARIAL = "arial";
-TIMES = "times";
-COURIER = "courier";
-LINK1 = "linka";
-LINK2 = "linkb";
-LINK3 = "linkc";
+d -> b
+
+b -> + x - b 
+b -> . x , b 
+b -> 1s x 2s b
+b -> 1z x 2z b
+b -> \n b
+b -> ''
+
+x -> hola x
+x -> \n x
+x -> x' x
+x -> ''
+
+x' -> 1* x 2*
+x' -> 1+ x 2+
+x' -> 1_ x 2_
+x' -> < w >
+
+w -> ( q' ) x
+w -> [ w' ] x
+w -> { e' } x
+
+q' -> rojo
+q' -> azul
+q' -> amarillo
+
+w' -> arial
+w' -> times
+w' -> courier
+
+e' -> linka
+e' -> linkb
+e' -> linkc
+
+*/
