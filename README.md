@@ -16,7 +16,7 @@ https://jsmachines.sourceforge.net/machines/ll1.html
 make
 ./main.exe
 ```
-Modificar el archivo 'texto.gramatic' antes para colocar tu propio texto 
+Modificar el archivo 'texto.markdown' antes para colocar tu propio texto 
 
 
 ## limpiar 
