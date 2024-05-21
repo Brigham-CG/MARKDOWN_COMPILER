@@ -1,7 +1,8 @@
+// ###############################################
+// ##########  Antlr4 gramar version #############
+// ###############################################
+
 grammar markdown;
-
-
-// antlr4 gramar version
 
 documento: bloque;
 bloque: parrafo bloque |
@@ -71,7 +72,10 @@ LINK3: 'linkc';
 PALABRA: 'hola ';
 SALTO_DE_LINEA:  '\n';
 
-// example input: 
+// ###############################################
+// ##########  Example input Antlr4 ##############
+// ###############################################
+
 /*
 <h1>hola hola hola hola hola hola </h1>
 <h2>hola hola hola </h2>
@@ -90,14 +94,13 @@ hola hola hola hola 1*hola hola 2*</p>
 </p>
 */
 
+// ###############################################
+// ##########  Forge Calculator Version ##########
+// ###############################################
+// [!] https://jsmachines.sourceforge.net/machines/ll1.html
+
+// [+]: Gramar:
 /*
-Sourhce Forge Calculator Version
-: https://jsmachines.sourceforge.net/machines/ll1.html
-
-
-
-// 1t hola hola hola hola hola hola 2t \n 1s hola hola hola 2s \n \n 1z hola hola hola hola 2z  \n 1p hola hola hola hola hola \n hola hola hola hola hola hola hola hola \n hola hola hola hola 1* hola hola 2* 2p \n 1p hola hola 1+ hola 1* hola hola \n hola 2* 1_ hola hola 2_ 2+ hola hola hola hola hola \n hola hola hola hola 1* hola hola 2* 2p \n 1p < ( rojo ) hola 1* hola 2* > \n < [ arial ] hola hola 1+ hola 2+ > \n hola \n < { linka } hola hola hola hola hola hola hola > \n 2p \n    
-
 d -> b
 
 b -> + x - b 
@@ -132,5 +135,7 @@ w' -> courier
 e' -> linka
 e' -> linkb
 e' -> linkc
-
 */
+
+// [+]: Input:
+// 1t hola hola hola hola hola hola 2t \n 1s hola hola hola 2s \n \n 1z hola hola hola hola 2z  \n 1p hola hola hola hola hola \n hola hola hola hola hola hola hola hola \n hola hola hola hola 1* hola hola 2* 2p \n 1p hola hola 1+ hola 1* hola hola \n hola 2* 1_ hola hola 2_ 2+ hola hola hola hola hola \n hola hola hola hola 1* hola hola 2* 2p \n 1p < ( rojo ) hola 1* hola 2* > \n < [ arial ] hola hola 1+ hola 2+ > \n hola \n < { linka } hola hola hola hola hola hola hola > \n 2p \n    

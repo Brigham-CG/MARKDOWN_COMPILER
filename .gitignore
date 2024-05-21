@@ -3,5 +3,7 @@
 scanner
 mark2*
 mark3*
+markdown*
 !mark2.g4
 !mark2Backup.g4
+!markdown.g4
