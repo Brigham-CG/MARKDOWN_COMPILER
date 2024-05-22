@@ -238,7 +238,6 @@ void Token::print() {
     else if (type == END_OF_FILE)
         std::cout << "END_OF_FILE' ";
 
-
     //std::cout << "VALUE: '" << value <<"'\n";
     cout << "VALUE: '" << value << "' << LINE: " << lineIndex << "\n";
 }

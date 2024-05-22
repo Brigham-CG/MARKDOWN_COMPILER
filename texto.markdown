@@ -9,7 +9,7 @@
 <p> si preguntan por ti, solo dire que te vi en mis suenos una noche 
 y solo sueno desde entonces...</p>
 
-<p> *esto esta en negrita $pero esto esta en cursiva$ _ y esto esta tachado *</p>
+<p> *esto esta en negrita $pero esto esta en cursiva$ _ y esto esta tachado _*</p>
 
 <p> <(rojo) esto esta en rojo> <[arial] esto esta en arial> 
 <{https://google.com} google ></p>

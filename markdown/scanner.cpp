@@ -214,7 +214,7 @@ void scanner::get_paragraph(char character, int &index)
     character = get_char(index);    
     
     if(character == '>')
-        collect_token(I_PARRAFO, "<p>", getNumberOfLine(index));
+        collect_token(I_PARRAFO, "<p>", index);
     else{
         //error
     }    
@@ -242,7 +242,7 @@ void scanner::get_close(char character, int &index)
     {
         character = get_char(index);
         if(character == '>')
-            collect_token(F_PARRAFO, "</p>", getNumberOfLine(index));
+            collect_token(F_PARRAFO, "</p>", index);
     }
     else if(character == 'h')
     {
@@ -272,12 +272,15 @@ void scanner::get_close(char character, int &index)
 
         if(character != '>')
         {
+            cout << "[!] Error de cerrado en la linea: " << endl;
             // error
             return;
         }
 
-        
-        collect_token(t_type, "</h"+c_type+">", getNumberOfLine(index));
+        // Print index"
+        cout << "Index: " << index << " - " << getNumberOfLine(index) << endl;
+
+        collect_token(t_type, "</h"+c_type+">", index);
     }
     else{
         //error
