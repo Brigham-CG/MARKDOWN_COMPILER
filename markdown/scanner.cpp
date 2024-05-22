@@ -14,7 +14,6 @@ using namespace std;
 
 // ####################################### AUXILIAR FUNCTIONS ################################################
 
-
 std::string reference_text = "abcdefghijklmnopqrstuvwxyz";
 std::string reference_number = "1234567890";
 std::string reference_special = "*\\_$<>()[]|";
@@ -54,11 +53,10 @@ class scanner {
 
     public:
         scanner(string fileName);                   // Constructor
-
-
         vector<Token> get_tokens();                 // Get tokens
 };
 
+// Constructor: Lee el archivo y guarda el texto en la variable text
 scanner::scanner(string fileName) {
     text = read_file(fileName);
 }
@@ -91,7 +89,6 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
     if(character == ' ') {
         return;
     }
-
     // * Salto de línea
     else if(character == '\n') {
         get_eol(character, index);
@@ -108,20 +105,23 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
     else if(character == '_') {
         get_special(I_TACHADO, F_TACHADO, stack, "_", index);
     }
-    
     // * Cursiva
     else if(character == '$'){
-        get_special(I_TACHADO, F_TACHADO, stack, "*", index);
+        get_special(I_CURSIVA, F_CURSIVA, stack, "$", index);
     }
+    // * Opciones (Titulos, Subtitulos, Subsubtitulos, Color, Fuente, URL)
     else if (character == '<') 
     {
         char next_char = peek_char(index);
         
         // * Titulos - Subtitulos - Subsubtitulos
-        if(next_char == 'h')
+        if(next_char == 'h'){
             get_titles(character, index);
-        else if(next_char == 'p')
+        }
+        // * Parrafo
+        else if(next_char == 'p'){
             get_paragraph(character, index);
+        }
         // * Color: <(color) word>
         else if(next_char == '(') {
             get_init_option(I_COLOR, F_COLOR, "(", ")", stack, index, &scanner::select_color);  
@@ -131,35 +131,39 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
             get_init_option(I_FUENTE, F_FUENTE, "[", "]", stack, index, &scanner::select_font);
         }
         // * URL: <{url}(word)>
-        else if(next_char == '{') 
-        {
+        else if(next_char == '{') {
             get_init_option(I_URL, F_URL, "{", "}", stack, index, &scanner::url_detector);
         }
-        //close
+        // * Cerrar OPCION (</)
         else if(next_char == '/')
         {
             get_close(character, index);
         }
     }
-    else if(character == '>') // * CLOSE OPTION
+    // * Opciones CERRAR
+    else if(character == '>')
     {
         get_close_option(stack, index);
     }
-    else if (character == '|') // * TABLE
+    // * Tabla
+    else if (character == '|')
     {
         get_bar_table(index);
     }
-    else // * Word
+    // * Palabra
+    else
     {
         get_word(character, index);
     }
 }
 
+// Metodo: Token - SALTO DE LINEA
 void scanner::get_eol(char character, int &index)
 {
     collect_token(SALTO_DE_LINEA, "\n", index);
 }
 
+// Metodo: Saltar comentarios
 void scanner::skip_comment(char character, int &index)
 {
     char next_char = peek_char(index);
@@ -167,7 +171,7 @@ void scanner::skip_comment(char character, int &index)
     if(next_char == '/') { // is_comment
         do{
             character = get_char(index);
-        } while(character != '\0' && character != '\n');
+        } while(character != '\0' && character != '\n'); // Saltar hasta el final de la línea (\n)
         
         std::cout << "Debug Scan Comment skipped\n";
     }
@@ -176,6 +180,7 @@ void scanner::skip_comment(char character, int &index)
     }
 }
 
+// Metodo: Token Titulos - (I_TITULO, I_SUBTITULO, I_SUBSUBTITULO)
 void scanner::get_titles(char character, int &index)
 {
     index++;
@@ -202,6 +207,7 @@ void scanner::get_titles(char character, int &index)
         collect_token(t_type, "<h"+c_type+">", index);
 }
 
+// Metodo: Token Parrafo - (I_PARRAFO)
 void scanner::get_paragraph(char character, int &index)
 {
     index++;
@@ -395,18 +401,19 @@ void scanner::get_word(char character, int &index)
     collect_token(WORD, word,index);
 }
 
+// Metodo: Devuelve los tokens
 vector<Token> scanner::get_tokens() {
     process_text();
     return tokens;
 }
 
-// Get char: Devuelve el caracter en la posición index y avanza el puntero
+// Metodo: Devuelve el caracter en la posición index y avanza el puntero
 char scanner::get_char(int &index){
     index++;
     return text[index-1];
 }
 
-// Peek char: Devuelve el caracter en la posición index
+// Metodo: Devuelve el caracter en la posición index
 char scanner::peek_char(int index){   
     return text[index];
 }
@@ -480,6 +487,5 @@ void scanner::collect_token(token_type type, string symbol, int index)
     cout << "Debug Scan Token collected - ";
     token.print();   
 }
-
 
 #endif // SCANNER_CPP

@@ -9,11 +9,17 @@ using namespace std;
 
 // ########################################## MAIN FUNCTION ##############################################
 int main() {
-    cout << "-----------SCANNER----------\n\n"; 
+    cout << "-------------- SCANNER -------------\n"; 
     scanner scan("texto.markdown");
     vector<Token> tokens = scan.get_tokens();
 
-    cout << "\n\n-----------PARSER----------\n\n"; 
+    // Print tokens
+    //cout << "\n\n----------- TOKENS ----------\n";
+    //cout << endl << "> [DEBUG] Tokens Obtained:" << endl;
+    //print_tokens(tokens);
+    //cout << "> [DEBUG] END Tokens Obtained:" << endl;
+
+    cout << "\n\n----------- PARSER ----------\n"; 
 
     Parser pars(tokens);
 }

@@ -103,39 +103,39 @@ hola hola hola hola 1*hola hola 2*</p>
 /*
 d -> b
 
-b -> + x - b 
-b -> . x , b 
-b -> 1s x 2s b
-b -> 1z x 2z b
+b -> 1p t 2p b
 b -> \n b
+b -> 1t t 2t b
+b -> 1s t 2s b
+b -> 1z t 2z b
 b -> ''
 
-x -> hola x
-x -> \n x
-x -> x' x
-x -> ''
+t -> hola t
+t -> \n t
+t -> t' t
+t -> ''
 
-x' -> 1* x 2*
-x' -> 1+ x 2+
-x' -> 1_ x 2_
-x' -> < w >
+t' -> 1* t 2*
+t' -> 1$ t 2$
+t' -> 1_ t 2_
+t' -> < z >
 
-w -> ( q' ) x
-w -> [ w' ] x
-w -> { e' } x
+z -> ( c ) t
+z -> [ f ] t
+z -> { u } t
 
-q' -> rojo
-q' -> azul
-q' -> amarillo
+c -> rojo
+c -> azul
+c -> amarillo
 
-w' -> arial
-w' -> times
-w' -> courier
+f -> arial
+f -> times
+f -> courier
 
-e' -> linka
-e' -> linkb
-e' -> linkc
+u -> linka
+u -> linkb
+u -> linkc
 */
 
 // [+]: Input:
-// 1t hola hola hola hola hola hola 2t \n 1s hola hola hola 2s \n \n 1z hola hola hola hola 2z  \n 1p hola hola hola hola hola \n hola hola hola hola hola hola hola hola \n hola hola hola hola 1* hola hola 2* 2p \n 1p hola hola 1+ hola 1* hola hola \n hola 2* 1_ hola hola 2_ 2+ hola hola hola hola hola \n hola hola hola hola 1* hola hola 2* 2p \n 1p < ( rojo ) hola 1* hola 2* > \n < [ arial ] hola hola 1+ hola 2+ > \n hola \n < { linka } hola hola hola hola hola hola hola > \n 2p \n    
+// 1t hola hola hola 2t \n 1s hola hola hola 2s \n \n 1z hola hola hola 2z \n 1p hola hola hola \n hola hola hola \n hola hola hola 1* hola hola hola 2* 2p \n 1p hola 1$ hola 1* hola hola \n hola 2* 1_ hola hola 2_ 2$ hola hola \n hola hola 1* hola hola 2* 2p \n 1p < ( rojo ) hola 1* hola 2* > \n < [ arial ] hola 1$ hola 2$ > \n hola \n < { linka } hola hola hola > \n 2p \n  

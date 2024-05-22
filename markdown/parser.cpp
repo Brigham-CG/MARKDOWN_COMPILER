@@ -7,12 +7,12 @@
 #include <stack>
 #include "token.cpp"
 #include "tools.cpp"
+#include "manageError.cpp"
 
-#ifndef PARSER_CPP
+#ifndef PARSER_CPP 
 #define PARSER_CPP
 
 using namespace std;
-
 
 struct ProductionRule {
     string nonTerminal;
@@ -27,18 +27,27 @@ class Parser
         unordered_map<string, unordered_map<string, ProductionRule>> parsingTable;
     public:
         Parser(vector<Token> input_tokens);
-        bool parsing_ll1(vector<Token> tokens);
+        void parsing_ll1(vector<Token> tokens);
         bool is_valid_terminal(string character);
+        ManagerError errorManager;
 };
 
 Parser::Parser(vector<Token> input_tokens)
 {   
     initializeParsingTable();
 
-    if(parsing_ll1(input_tokens))
-        cout<<"[+] El codigo fuente fue correctamente parseado!"<<endl;
-    else
-        cout<<"[-] El codigo fuente es incorrecto!"<<endl;
+    parsing_ll1(input_tokens);
+
+    cout << endl << "------------------- Results -------------------\n";
+    if (errorManager.has_errors()) {
+        cout << "[!] El código fuente contiene errores de sintaxis!" << endl;
+        errorManager.what_is_missing();
+        errorManager.print_errors();
+    }
+    else{
+        cout << "[+] El código fuente fue correctamente parseado!" << endl;
+    
+    }
 }
 
 bool Parser::is_valid_terminal(std::string str) {
@@ -50,54 +59,58 @@ bool Parser::is_valid_terminal(std::string str) {
     return valid_tokens.find(str) != valid_tokens.end();
 }
 
-
 void Parser::initializeParsingTable()
 {
-    parsingTable["DO"]["1p"] = {"DO", "BL"};
-    parsingTable["DO"]["1t"] = {"DO", "BL"};
-    parsingTable["DO"]["1s"] = {"DO", "BL"};
-    parsingTable["DO"]["1z"] = {"DO", "BL"};
-    parsingTable["DO"]["/n"] = {"DO", "BL"};
-    parsingTable["DO"]["$$"] = {"DO", "BL"};
+    parsingTable["DO"]["1p"] = {"DO", "BL"};            // [Documento][I_PARAFO] = Documento -> Bloque
+    parsingTable["DO"]["1t"] = {"DO", "BL"};            // [Documento][I_TITULO] = Documento -> Bloque
+    parsingTable["DO"]["1s"] = {"DO", "BL"};            // [Documento][I_SUBTITULO] = Documento -> Bloque
+    parsingTable["DO"]["1z"] = {"DO", "BL"};            // [Documento][I_SUBSUBTITULO] = Documento -> Bloque
+    parsingTable["DO"]["/n"] = {"DO", "BL"};            // [Documento][SALTO_DE_LINEA] = Documento -> Bloque
+    parsingTable["DO"]["$$"] = {"DO", "BL"};            // [Documento][END_OF_FILE] = Documento -> Bloque
 
-    parsingTable["BL"]["1p"] = {"BL", "1pTE2pBL"};
-    parsingTable["BL"]["1t"] = {"BL", "1tTE2tBL"};
-    parsingTable["BL"]["1s"] = {"BL", "1sTE2sBL"};
-    parsingTable["BL"]["1z"] = {"BL", "1zTE2zBL"};
-    parsingTable["BL"]["/n"] = {"BL", "/nBL"};
-    parsingTable["BL"]["$$"] = {"BL", "  "};
+    parsingTable["BL"]["1p"] = {"BL", "1pTE2pBL"};      // [Bloque][I_PARAFO] = Bloque -> I_PARAFO TExto F_PARAFO Bloque
+    parsingTable["BL"]["1t"] = {"BL", "1tTE2tBL"};      // [Bloque][I_TITULO] = Bloque -> I_TITULO TExto F_TITULO Bloque
+    parsingTable["BL"]["1s"] = {"BL", "1sTE2sBL"};      // [Bloque][I_SUBTITULO] = Bloque -> I_SUBTITULO TExto F_SUBTITULO Bloque
+    parsingTable["BL"]["1z"] = {"BL", "1zTE2zBL"};      // [Bloque][I_SUBSUBTITULO] = Bloque -> I_SUBSUBTITULO TExto F_SUBSUBTITULO Bloque
+    parsingTable["BL"]["/n"] = {"BL", "/nBL"};          // [Bloque][SALTO_DE_LINEA] = Bloque -> SALTO_DE_LINEA Bloque
+    parsingTable["BL"]["$$"] = {"BL", "  "};            // [Bloque][END_OF_FILE] = Bloque -> EPSILON
 
-    parsingTable["TE"]["2p"] = {"TE", "  "};
-    parsingTable["TE"]["2t"] = {"TE", "  "};
-    parsingTable["TE"]["2s"] = {"TE", "  "};
-    parsingTable["TE"]["2z"] = {"TE", "  "};
-    parsingTable["TE"]["/n"] = {"TE", "/nTE"};
-    parsingTable["TE"]["wo"] = {"TE", "woTE"};
-    parsingTable["TE"]["1*"] = {"TE", "TSTE"};
-    parsingTable["TE"]["2*"] = {"TE", "  "};
-    parsingTable["TE"]["1+"] = {"TE", "TSTE"};
-    parsingTable["TE"]["2+"] = {"TE", "  "};
-    parsingTable["TE"]["1_"] = {"TE", "TSTE"};
-    parsingTable["TE"]["2_"] = {"TE", "  "};
-    parsingTable["TE"]["<o"] = {"TE", "TSTE"};
-    parsingTable["TE"][">o"] = {"TE", "  "};
+    parsingTable["TE"]["2p"] = {"TE", "  "};            // [Texto][F_PARAFO] = Texto -> EPSILON
+    parsingTable["TE"]["2t"] = {"TE", "  "};            // [Texto][F_TITULO] = Texto -> EPSILON
+    parsingTable["TE"]["2s"] = {"TE", "  "};            // [Texto][F_SUBTITULO] = Texto -> EPSILON
+    parsingTable["TE"]["2z"] = {"TE", "  "};            // [Texto][F_SUBSUBTITULO] = Texto -> EPSILON
+    parsingTable["TE"]["/n"] = {"TE", "/nTE"};          // [Texto][SALTO_DE_LINEA] = Texto -> SALTO_DE_LINEA Texto
+    parsingTable["TE"]["wo"] = {"TE", "woTE"};          // [Texto][WORD] = Texto -> word Texto
+    parsingTable["TE"]["1*"] = {"TE", "TSTE"};          // [Texto][I_NEGRITA] = Texto -> TextoPrima Texto
+    parsingTable["TE"]["2*"] = {"TE", "  "};            // [Texto][F_NEGRITA] = Texto -> EPSILON
+    parsingTable["TE"]["1$"] = {"TE", "TSTE"};          // [Texto][I_CURSIVA] = Texto -> TextoPrima Texto
+    parsingTable["TE"]["2$"] = {"TE", "  "};            // [Texto][F_CURSIVA] = Texto -> EPSILON
+    parsingTable["TE"]["1_"] = {"TE", "TSTE"};          // [Texto][I_TACHADO] = Texto -> TextoPrima Texto
+    parsingTable["TE"]["2_"] = {"TE", "  "};            // [Texto][F_TACHADO] = Texto -> EPSILON
+    parsingTable["TE"]["<o"] = {"TE", "TSTE"};          // [Texto][I_OPCION] = Texto -> TextoPrima Texto
+    parsingTable["TE"][">o"] = {"TE", "  "};            // [Texto][F_OPCION] = Texto -> EPSILON
 
-    parsingTable["TS"]["1*"] = {"TS", "1*TE2*"};
-    parsingTable["TS"]["1+"] = {"TS", "1+TE2+"};
-    parsingTable["TS"]["1_"] = {"TS", "1_TE2_"};
-    parsingTable["TS"]["<o"] = {"TS", "<oOP>o"};
+    parsingTable["TS"]["1*"] = {"TS", "1*TE2*"};        // [TextoPrima][I_NEGRITA] = TextoPrima -> I_NEGRITA Texto F_NEGRITA
+    parsingTable["TS"]["1$"] = {"TS", "1$TE2$"};        // [TextoPrima][I_CURSIVA] = TextoPrima -> I_CURSIVA Texto F_CURSIVA
+    parsingTable["TS"]["1_"] = {"TS", "1_TE2_"};        // [TextoPrima][I_TACHADO] = TextoPrima -> I_TACHADO Texto F_TACHADO
+    parsingTable["TS"]["<o"] = {"TS", "<oOP>o"};        // [TextoPrima][I_OPCION] = TextoPrima -> I_OPCION Opcion F_OPCION
 
-    parsingTable["OP"]["(c"] = {"OP", "(cCO)cTE"};
-    parsingTable["OP"]["[f"] = {"OP", "[fFU]fTE"};
-    parsingTable["OP"]["{u"] = {"OP", "{uwo}uTE"};
+    parsingTable["OP"]["(c"] = {"OP", "(cCO)cTE"};      // [Opcion][I_COLOR] = Opcion -> I_COLOR Color F_COLOR Texto
+    parsingTable["OP"]["[f"] = {"OP", "[fFU]fTE"};      // [Opcion][I_FUENTE] = Opcion -> I_FUENTE Fuente F_FUENTE Texto
+    parsingTable["OP"]["{u"] = {"OP", "{uwo}uTE"};      // [Opcion][I_URL] = Opcion -> I_URL URL F_URL Texto
 
-    parsingTable["CO"]["ro"] = {"CO", "ro"};
-    parsingTable["CO"]["az"] = {"CO", "az"};
+    parsingTable["CO"]["ro"] = {"CO", "ro"};            // [Color][ROJO] = Color -> ROJO           
+    parsingTable["CO"]["az"] = {"CO", "az"};            // [Color][AZUL] = Color -> AZUL
+    //parsingTable["CO"]["am"] = {"CO", "am"};            // [Color][AMARILLO] = Color -> AMARILLO
 
-    parsingTable["FU"]["ar"] = {"FU", "ar"};
-    parsingTable["FU"]["ti"] = {"FU", "ti"};
-    parsingTable["FU"]["co"] = {"FU", "co"};
-    parsingTable["FU"]["he"] = {"FU", "he"};    
+    parsingTable["FU"]["ar"] = {"FU", "ar"};            // [Fuente][ARIAL] = Fuente -> ARIAL
+    parsingTable["FU"]["ti"] = {"FU", "ti"};            // [Fuente][TIMES] = Fuente -> TIMES
+    parsingTable["FU"]["co"] = {"FU", "co"};            // [Fuente][COURIER] = Fuente -> COURIER
+    parsingTable["FU"]["he"] = {"FU", "he"};            // [Fuente][HELVETICA] = Fuente -> HELVETICA
+
+    //parsingTable["UR"]["la"] = {"UR", "la"};            // [URL][linka] = URL -> linka
+    //parsingTable["UR"]["lb"] = {"UR", "lb"};            // [URL][linkb] = URL -> linkb
+    //parsingTable["UR"]["lc"] = {"UR", "lc"};            // [URL][linkc] = URL -> linkc
 }
 
 void print_tokens(vector<Token> input_tokens)
@@ -108,7 +121,7 @@ void print_tokens(vector<Token> input_tokens)
     }
 }
 
-bool Parser::parsing_ll1(vector<Token> input_tokens)
+void Parser::parsing_ll1(vector<Token> input_tokens)
 {
     input_tokens.push_back(Token(END_OF_FILE, "$$", 0));
     // print_tokens(input_tokens);
@@ -122,7 +135,6 @@ bool Parser::parsing_ll1(vector<Token> input_tokens)
 
     while (!parseStack.empty()) {
 
-        
         currentSymbol = parseStack.top();
         inputSymbol = input_tokens[pos].get_string();
 
@@ -130,7 +142,7 @@ bool Parser::parsing_ll1(vector<Token> input_tokens)
 
         if (currentSymbol == inputSymbol && currentSymbol == "$$") {
             // Fin del análisis
-            return true;
+            return;
         } else if (currentSymbol == inputSymbol) {
             // avanzar en la entrada y la pila
             parseStack.pop();
@@ -151,11 +163,25 @@ bool Parser::parsing_ll1(vector<Token> input_tokens)
                 }
             }
         } else {
-            // Error de sintaxis
-            return false;
+            cout << endl << "[!] Error de sintaxis - Recorriendo el stack 1 elemento" ;
+            parseStack.pop();
+
+            // Recuperación de errores (Current es Terminal)
+            if(is_valid_terminal(currentSymbol)){
+                cout << "(Terminal)" << endl << endl;
+                string error = currentSymbol;
+                string context = "Error de sintaxis en la linea " + to_string(input_tokens[pos].lineIndex) + ": ";
+                errorManager.add_error(error, context);
+            }
+            // Recuperación de errores (Current es No Terminal)
+            else{
+                cout << "(No Terminal)" << endl << endl;
+            }
+            //return false;
         }
     }
-    return false;
+
+    return;
 }
 
 #endif // PARSER_CPP
