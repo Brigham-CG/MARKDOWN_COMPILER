@@ -15,8 +15,14 @@ using namespace std;
 class ManagerError {
     private:
         vector<tuple<string, string>> errors;
+        map<string, vector<string> > follow_table;
 
     public:
+        // Constructor
+        ManagerError() {
+            initFollowTable();
+        }
+
         void add_error(string error, string context) {
             make_tuple(error, context);
             errors.push_back(make_tuple(error, context));
@@ -48,6 +54,22 @@ class ManagerError {
                     }
                 }
             }
+        }
+
+        // Inicializamos la tabla de follows
+        void initFollowTable(){
+            follow_table["DO"] = {"$$"};
+            follow_table["BL"] = {"$$"};
+            follow_table["TE"] = {"2p", "2t", "2z", "2*", "2$", "2_", ">o"};
+            follow_table["TS"] = {"wo", "/n", "2p", "2t", "2z", "2*", "2s", "2$", "2_", ">o", "1*", "1$", "1_","<o"};
+            follow_table["OP"] = {">o"};
+            follow_table["CO"] = {")c"};
+            follow_table["FU"] = {"}f"};
+            follow_table["PA"] = {")p"};
+        }
+
+        void findFollow(string a, string b){
+            
         }
 };
 
