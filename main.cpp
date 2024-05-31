@@ -1,9 +1,9 @@
 #include <iostream>
 #include <vector>
 
-#include "markdown/scanner.cpp"
-#include "markdown/parser.cpp"
-#include "markdown/token.cpp"
+#include "lib/scanner.cpp"
+#include "lib/parser.cpp"
+#include "lib/token.cpp"
 
 using namespace std;
 
