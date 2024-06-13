@@ -122,23 +122,32 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
         else if(next_char == 'p'){
             get_paragraph(character, index);
         }
-        // * Color: <(color) word>
-        else if(next_char == '(') {
-            get_init_option(I_COLOR, F_COLOR, "(", ")", stack, index, &scanner::select_color);  
-        }
-        // * Fuente: <[font] word>
-        else if(next_char == '[') {
-            get_init_option(I_FUENTE, F_FUENTE, "[", "]", stack, index, &scanner::select_font);
-        }
-        // * URL: <{url}(word)>
-        else if(next_char == '{') {
-            get_init_option(I_URL, F_URL, "{", "}", stack, index, &scanner::url_detector);
-        }
-        // * Cerrar OPCION (</)
         else if(next_char == '/')
         {
             get_close(character, index);
         }
+        else
+        {
+            // -> Añadimos token de INICIO DE OPCION
+            collect_token(I_OPCION, "<", index);   
+            
+            stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
+
+            // * Color: <(color) word>
+            if(next_char == '(') {
+                get_init_option(I_COLOR, F_COLOR, "(", ")", stack, index, &scanner::select_color);  
+            }
+            // * Fuente: <[font] word>
+            else if(next_char == '[') {
+                get_init_option(I_FUENTE, F_FUENTE, "[", "]", stack, index, &scanner::select_font);
+            }
+            // * URL: <{url}(word)>
+            else if(next_char == '{') {
+                get_init_option(I_URL, F_URL, "{", "}", stack, index, &scanner::url_detector);
+            }
+
+        }
+        // * Cerrar OPCION (</)
     }
     // * Opciones CERRAR
     else if(character == '>')
@@ -298,17 +307,18 @@ void scanner::get_init_option(
     vector<Token> &stack, int &index,
     selectFunction select_type)
 {
-     // -> Añadimos token de INICIO DE OPCION
-    collect_token(I_OPCION, "<", index);   
+    //  // -> Añadimos token de INICIO DE OPCION
+    // collect_token(I_OPCION, "<", index);   
     
-    index++;
-    stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
+    // index++;
+    // stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
 
+    index++;
     // -> Añadimos token de INICIO DE COLOR
     Token token_i_c(type_init, init_char, getNumberOfLine(index));
     tokens.push_back(token_i_c);
 
-    // Collect color word
+    // Collect token option
     string select;
     select += collect_word(index);
 

@@ -60,7 +60,7 @@ class ManagerError {
         void initFollowTable(){
             follow_table["DO"] = {"$$"};
             follow_table["BL"] = {"$$"};
-            follow_table["TE"] = {"2p", "2t", "2z", "2*", "2$", "2_", ">o"};
+            follow_table["TE"] = {"2p", "2t", "2s","2z", "2*", "2$", "2_", ">o"};
             follow_table["TS"] = {"wo", "/n", "2p", "2t", "2z", "2*", "2s", "2$", "2_", ">o", "1*", "1$", "1_","<o"};
             follow_table["OP"] = {">o"};
             follow_table["CO"] = {")c"};
@@ -68,8 +68,14 @@ class ManagerError {
             follow_table["PA"] = {")p"};
         }
 
-        void findFollow(string a, string b){
-            
+        bool findFollow(string a, string b){
+
+            vector<string> terminals = follow_table[a];
+            for (int i = 0; i < terminals.size(); i++) {
+                if(terminals[i] == b)
+                    return true;
+            }
+            return false;
         }
 };
 

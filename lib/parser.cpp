@@ -101,7 +101,7 @@ void Parser::initializeParsingTable()
 
     parsingTable["CO"]["ro"] = {"CO", "ro"};            // [Color][ROJO] = Color -> ROJO           
     parsingTable["CO"]["az"] = {"CO", "az"};            // [Color][AZUL] = Color -> AZUL
-    //parsingTable["CO"]["am"] = {"CO", "am"};            // [Color][AMARILLO] = Color -> AMARILLO
+    parsingTable["CO"]["am"] = {"CO", "am"};            // [Color][AMARILLO] = Color -> AMARILLO
 
     parsingTable["FU"]["ar"] = {"FU", "ar"};            // [Fuente][ARIAL] = Fuente -> ARIAL
     parsingTable["FU"]["ti"] = {"FU", "ti"};            // [Fuente][TIMES] = Fuente -> TIMES
@@ -123,7 +123,7 @@ void print_tokens(vector<Token> input_tokens)
 
 void Parser::parsing_ll1(vector<Token> input_tokens)
 {
-    input_tokens.push_back(Token(END_OF_FILE, "$$", 0));
+    input_tokens.push_back(Token(END_OF_FILE, "$$", 1));
     // print_tokens(input_tokens);
     stack<string> parseStack;
     parseStack.push("$$");
@@ -164,20 +164,44 @@ void Parser::parsing_ll1(vector<Token> input_tokens)
             }
         } else {
             cout << endl << "[!] Error de sintaxis - Recorriendo el stack 1 elemento" ;
-            parseStack.pop();
+            string error = currentSymbol;
+            string context = "Error de sintaxis en la linea " + to_string(input_tokens[pos].lineIndex) + ": ...'" + input_tokens[pos - 1].value + "->...'";
 
             // Recuperación de errores (Current es Terminal)
             if(is_valid_terminal(currentSymbol)){
+                
+                parseStack.pop();
+
                 cout << "(Terminal)" << endl << endl;
-                string error = currentSymbol;
-                string context = "Error de sintaxis en la linea " + to_string(input_tokens[pos].lineIndex) + ": ";
+                // string error = currentSymbol;
+                // string context = "Error de sintaxis en la linea " + to_string(input_tokens[pos].lineIndex) + ": ";
                 errorManager.add_error(error, context);
             }
             // Recuperación de errores (Current es No Terminal)
             else{
+                
                 cout << "(No Terminal)" << endl << endl;
+
+                if(errorManager.findFollow(currentSymbol, inputSymbol))
+                    parseStack.pop();
+                else
+                {
+                    
+                    if (pos == input_tokens.size() - 1)
+                    {
+                        errorManager.add_error(error, context);
+                        return;
+                    }
+                    do{
+                        pos++;
+                        inputSymbol = input_tokens[pos].get_string(); // next character of input
+                        // std::cout << "finding: " << inputSymbol << " " << pos << " " << input_tokens.size() << std::endl;
+                    }while(pos < input_tokens.size() - 1 && !errorManager.findFollow(currentSymbol, inputSymbol));
+                }
+
+                errorManager.add_error(error, context);
+
             }
-            //return false;
         }
     }
 

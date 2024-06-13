@@ -4,6 +4,7 @@
 #include "lib/scanner.cpp"
 #include "lib/parser.cpp"
 #include "lib/token.cpp"
+#include "lib/translator.cpp"
 
 using namespace std;
 
@@ -22,4 +23,10 @@ int main() {
     cout << "\n\n----------- PARSER ----------\n"; 
 
     Parser pars(tokens);
+
+    cout << "\n\n----------- TRANSLATOR ----------\n";
+
+    Translator translator(tokens, "file.html");
+
 }
+        

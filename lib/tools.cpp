@@ -38,4 +38,16 @@ bool is_uppercase(const std::string& str) {
     });
 }
 
+bool save_output(const std::string& output, const std::string& nameFile) {
+    std::ofstream outFile(nameFile);
+
+    if (!outFile.is_open()) {
+        return false;
+    }
+
+    outFile << output;
+    outFile.close();
+    return true;
+}
+
 #endif // TOOLS_H
