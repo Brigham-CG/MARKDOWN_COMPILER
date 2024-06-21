@@ -22,11 +22,11 @@ int main() {
 
     cout << "\n\n----------- PARSER ----------\n"; 
 
-    Parser pars(tokens);
+    Parser pars(tokens, "file.html");
 
-    cout << "\n\n----------- TRANSLATOR ----------\n";
+    // cout << "\n\n----------- TRANSLATOR ----------\n";
 
-    Translator translator(tokens, "file.html");
+    // Translator translator(tokens, "file.html");
 
 }
         

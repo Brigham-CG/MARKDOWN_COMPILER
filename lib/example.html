@@ -47,14 +47,23 @@
             s {
                 text-decoration: line-through;
             }
+
             
-            a {
+            /* a {
                 color: #007bff;
                 text-decoration: none;
-            }
+            } */
             
+            
+            a {
+                color: inherit; /* hereda el color del texto del elemento padre */
+                text-decoration: none; /* elimina cualquier subrayado */
+                font-weight: normal; /* establece el peso de la fuente como normal */
+            }
             a:hover {
-                text-decoration: underline;
+                color: inherit; /* hereda el color del texto del elemento padre */
+                text-decoration: none; /* elimina cualquier subrayado */
+                font-weight: normal; /* establece el peso de la fuente como normal */
             }
             
             .red {
@@ -84,6 +93,7 @@
             .helvetica {
                 font-family: Helvetica;
             }
+            
         </style>
     </head>
     <body>
@@ -91,7 +101,7 @@
     <h2> titulo h2 </h2>
     <h3> titulo h3 </h3>
 
-    <p> esto esta normal </p>
+    <p> esto esta normal </p>   
 
     <p><b>esto eta en negrita</b> <em>esto esta en cursiva</em> <s>esto esta tachado</s></p>
     <p><b><em><s>eso es una triple anidacion</s></em></b></p>
@@ -101,5 +111,10 @@
     <p><a>esto es un link</a></p>
     
     <p><span class="times"><span class="red"><b>esto es una conbinacion</b></span></span></p>
+
+    <p><a>hola</a></p>
+
+    <a href="#" style="color: rgb(0, 255, 195); text-decoration: underline; font-weight: bold;">Enlace con estilo específico y hover</a>
+    <p>hola</p><p>chau</p>
 </body>
 </html>

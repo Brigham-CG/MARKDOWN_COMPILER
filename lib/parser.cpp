@@ -19,23 +19,170 @@ struct ProductionRule {
     string production;
 };
 
+map<token_type, string> table;
+
+
+void init_exchange_table()
+{
+    table[I_TITULO] = "<h1>";
+    table[F_TITULO] = "</h1>\n";
+
+    table[I_SUBTITULO] = "<h2>";
+    table[F_SUBTITULO] = "</h2>\n";
+
+    table[I_SUBSUBTITULO] = "<h3>";
+    table[F_SUBSUBTITULO] = "</h3>\n";
+
+    table[I_PARRAFO] = "<p>";
+    table[F_PARRAFO] = "</p>\n";
+
+    table[I_NEGRITA] = "<b>";
+    table[F_NEGRITA] = "</b>";
+
+    table[I_CURSIVA] = "<em>";
+    table[F_CURSIVA] = "</em>";
+
+    table[I_TACHADO] = "<s>";
+    table[F_TACHADO] = "</s>";
+
+    table[I_OPCION] = "<a ";
+    table[F_OPCION] = "</a>";
+
+    table[I_COLOR] = "style=\"color: ";
+    table[F_COLOR] = "\">";
+
+    table[I_FUENTE] = "style=\"font-family: ";
+    table[F_FUENTE] = "\">";
+
+    table[I_URL] = "a style=\"color: #007bff; font-weight: bold; text-decoration: underline\"href=\"";
+    table[F_URL] = "\">";
+
+    table[SALTO_DE_LINEA] = "\n<br>";
+
+    table[ROJO] = "red";
+    table[AMARILLO] = "#d7d123";
+    table[AZUL] = "blue";
+
+    table[ARIAL] = "'Arial'";
+    table[TIMES] = "'Times New Roman'";
+    table[COURIER] = "'Courier New'";
+    table[HELVETICA] = "'Helvetica'";
+}
+
+
+string base_output =  R"(
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Compilado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        
+        h1, h2, h3 {
+            color: #0056b3;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            border-bottom: 1px solid #0056b3;
+            padding-bottom: 8px;
+        }
+        
+        h3 {
+            border-bottom: 1px dashed #0056b3;
+            padding-bottom: 6px;
+        }
+        
+        p {
+            padding-bottom: 0px;
+            margin-bottom: 0px;
+            margin-top: 0px;
+        }
+        
+        b, strong {
+            font-weight: bold;
+        }
+        
+        em {
+            font-style: italic;
+        }
+        
+        s {
+            text-decoration: line-through;
+        }
+        
+        a {
+            color: inherit; 
+            text-decoration: none; 
+            font-weight: normal; 
+        }
+        a:hover {
+            color: inherit; 
+            text-decoration: none; 
+            font-weight: normal;
+        }
+        
+        .red {
+            color: red;
+        }
+        
+        .yellow {
+            color: yellow;
+        }
+        
+        .blue {
+            color: blue;
+        }
+        
+        .arial {
+            font-family: 'Arial';
+        }
+        
+        .times {
+            font-family: 'Times New Roman';
+        }
+        
+        .courier {
+            font-family: 'Courier New';
+        }
+        
+        .helvetica {
+            font-family: Helvetica;
+        }
+    </style>
+</head>
+<body>
+)";
 
 class Parser
 {
     private:
+        string output;
         void initializeParsingTable();
         unordered_map<string, unordered_map<string, ProductionRule>> parsingTable;
     public:
-        Parser(vector<Token> input_tokens);
+        Parser(vector<Token> input_tokens, string outputNamefile);
         void parsing_ll1(vector<Token> tokens);
         bool is_valid_terminal(string character);
         ManagerError errorManager;
 };
 
-Parser::Parser(vector<Token> input_tokens)
+Parser::Parser(vector<Token> input_tokens, string outputNamefile)
 {   
     initializeParsingTable();
-
+    init_exchange_table();
     parsing_ll1(input_tokens);
 
     cout << endl << "------------------- Results -------------------\n";
@@ -46,7 +193,12 @@ Parser::Parser(vector<Token> input_tokens)
     }
     else{
         cout << "[+] El código fuente fue correctamente parseado!" << endl;
-    
+        output = base_output +output;
+        if (save_output(output, outputNamefile))
+        {
+            cout << "[+] Archivo generado\n";
+            return;
+        }
     }
 }
 
@@ -121,6 +273,19 @@ void print_tokens(vector<Token> input_tokens)
     }
 }
 
+
+string translator(Token select)
+{
+    string content;
+
+    if(select.type == WORD)
+        content = select.value + " ";
+    else
+        content = table[select.type];
+
+    return content;
+}
+
 void Parser::parsing_ll1(vector<Token> input_tokens)
 {
     input_tokens.push_back(Token(END_OF_FILE, "$$", 1));
@@ -133,6 +298,8 @@ void Parser::parsing_ll1(vector<Token> input_tokens)
     string currentSymbol = parseStack.top();
     string inputSymbol = input_tokens[pos].get_string();
 
+    stack<Token> st_translate;
+        
     while (!parseStack.empty()) {
 
         currentSymbol = parseStack.top();
@@ -144,9 +311,18 @@ void Parser::parsing_ll1(vector<Token> input_tokens)
             // Fin del análisis
             return;
         } else if (currentSymbol == inputSymbol) {
+            // translate
+            Token select = input_tokens[pos];
+
+            string select_translated = translator(select);
+
+            output += select_translated;
+
             // avanzar en la entrada y la pila
             parseStack.pop();
             pos++;
+
+
         } else if (is_uppercase(currentSymbol) && parsingTable[currentSymbol].find(inputSymbol) != parsingTable[currentSymbol].end()) {
 
             parseStack.pop();
@@ -163,6 +339,7 @@ void Parser::parsing_ll1(vector<Token> input_tokens)
                 }
             }
         } else {
+            output = "";
             cout << endl << "[!] Error de sintaxis - Recorriendo el stack 1 elemento" ;
             string error = currentSymbol;
             string context = "Error de sintaxis en la linea " + to_string(input_tokens[pos].lineIndex) + ": ...'" + input_tokens[pos - 1].value + "->...'";
