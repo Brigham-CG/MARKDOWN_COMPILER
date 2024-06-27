@@ -7,6 +7,7 @@ grammar markdown;
 documento: bloque;
 bloque: parrafo bloque |
     SALTO_DE_LINEA bloque |
+    tabla bloque |
     titulo bloque |
     subtitulo bloque |
     subsubtitulo bloque | ;
@@ -16,6 +17,26 @@ subtitulo: I_SUBTITULO texto  F_SUBTITULO;
 subsubtitulo: I_SUBSUBTITULO texto F_SUBSUBTITULO;
 
 parrafo: I_PARRAFO texto F_PARRAFO;
+
+
+
+
+//tabla: I_TABLA SALTO_DE_LINEA cuerpo_tabla F_TABLA;
+
+//cuerpo_tabla: titulo_tabla SALTO_DE_LINEA cuerpo_tabla | contenido_tabla SALTO_DE_LINEA cuerpo_tabla |;
+
+tabla: I_TABLA cuerpo_tabla F_TABLA;
+
+cuerpo_tabla: titulo_tabla cuerpo_tabla | contenido_tabla cuerpo_tabla |;
+
+
+
+
+titulo_tabla: I_TABLA_TITULO estructura_tabla F_TABLA_TITULO;
+
+contenido_tabla: I_TABLA_CONTENIDO estructura_tabla F_TABLA_CONTENIDO;
+
+estructura_tabla: BARRA_TABLA texto BARRA_TABLA estructura_tabla | ;
 
 texto: PALABRA texto | SALTO_DE_LINEA texto | texto_especial texto |;
 
@@ -45,6 +66,12 @@ I_SUBSUBTITULO: '<h3>';
 F_SUBSUBTITULO: '</h3>';
 I_PARRAFO: '<p>';
 F_PARRAFO: '</p>';
+I_TABLA: '<t1>';
+F_TABLA: '</t1>';
+I_TABLA_TITULO: '<tm>';
+F_TABLA_TITULO: '</tm>';
+I_TABLA_CONTENIDO: '<tn>';
+F_TABLA_CONTENIDO: '</tn>';
 I_NEGRITA: '1*'; 
 F_NEGRITA: '2*';
 I_CURSIVA: '1$'; 
@@ -70,6 +97,7 @@ LINK2: 'linkb';
 LINK3: 'linkc';
 
 PALABRA: 'hola ';
+BARRA_TABLA: '|';
 SALTO_DE_LINEA:  '\n';
 
 // ###############################################
@@ -105,10 +133,18 @@ d -> b
 
 b -> 1p t 2p b
 b -> \n b
+b -> 1b ct 2b
 b -> 1t t 2t b
 b -> 1s t 2s b
 b -> 1z t 2z b
 b -> ''
+
+ct -> 1m et 2m ct
+ct -> 1n et 2n ct
+ct -> ''
+
+et -> 1| t 2| et
+et -> ''
 
 t -> hola t
 t -> \n t
@@ -139,3 +175,5 @@ u -> linkc
 
 // [+]: Input:
 // 1t hola hola hola 2t \n 1s hola hola hola 2s \n \n 1z hola hola hola 2z \n 1p hola hola hola \n hola hola hola \n hola hola hola 1* hola hola hola 2* 2p \n 1p hola 1$ hola 1* hola hola \n hola 2* 1_ hola hola 2_ 2$ hola hola \n hola hola 1* hola hola 2* 2p \n 1p < ( rojo ) hola 1* hola 2* > \n < [ arial ] hola 1$ hola 2$ > \n hola \n < { linka } hola hola hola > \n 2p \n  
+
+// 1t hola hola 2t \n 1b 1m 1| hola 2| 1| hola 2| 2m 1n 1| hola 2| 1| hola 2| 2n 1n 1| hola 2| 1| hola 2| 2n 2b

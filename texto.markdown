@@ -7,7 +7,8 @@
 
 <p> <(rojo)esto esta en rojo> <(amarillo)esto esta en amarillo> <(azul)esto esta en azul></p>
 
-<p> <[arial]esto esta en arial>  <[times]esto esta en timesl> <[courier]esto esta en courier> <[helvetica]esto esta en helvetica> </p>
+<p> <[arial]esto esta en arial>  <[times]esto esta en times> <[courier]esto esta en courier> <[helvetica]esto esta en helvetica> </p>
 
 <p><{http://google.com} esto es un enlace a <(azul)G><(rojo)o><(amarillo)o><(azul)g><(amarillo)l><(rojo)e>></p>
 
+<t1> <tm> | TITULO | | TITULO | | TITULO | </tm> <tn> | texto  | | texto  | | texto  | </tn> <tn> | texto  | | texto | | texto  |</tn> </t1>

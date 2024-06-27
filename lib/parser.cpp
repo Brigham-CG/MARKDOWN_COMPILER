@@ -33,6 +33,18 @@ void init_exchange_table()
     table[I_SUBSUBTITULO] = "<h3>";
     table[F_SUBSUBTITULO] = "</h3>\n";
 
+    table[I_TABLA] = "<table border=\"1\">";
+    table[F_TABLA] = "</table>\n";
+
+    table[I_TABLA_TITULO] = "<tr style=\"color: #0056b3;\">";
+    table[F_TABLA_TITULO] = "</tr>\n";
+
+    table[I_TABLA_CONTENIDO] = "<tr>";
+    table[F_TABLA_CONTENIDO] = "</tr>\n";
+
+    table[I_BAR_TABLE] = "<td>";
+    table[F_BAR_TABLE] = "</td>";
+
     table[I_PARRAFO] = "<p>";
     table[F_PARRAFO] = "</p>\n";
 
@@ -204,8 +216,9 @@ Parser::Parser(vector<Token> input_tokens, string outputNamefile)
 
 bool Parser::is_valid_terminal(std::string str) {
     static const std::unordered_set<std::string> valid_tokens = {
-        "1t", "2t", "1s", "2s", "1z", "2z", "1p", "2p", "wo", "/n", "1*", "2*", "1_", "2_", "1$", "2$",
-        "ro", "am", "az", "<o", ">o", "(c", ")c", "[f", "]f", "ar", "ti", "co", "he", "{u", "}u", "$$"
+        "1p", "2p", "/n", "1b", "2b", "1t", "2t", "1s", "2s", "1z", "2z", "1m", "2m", "1n", "2n", "1|", "2|"
+        "wo", "1*", "2*", "1$", "2$", "1_", "2_", "<o", ">o", "(c", ")c", "[f", "]f", "{u", "}u", 
+        "ro", "am", "az", "ar", "ti", "co", "he", "$$"
     };
     
     return valid_tokens.find(str) != valid_tokens.end();
@@ -214,24 +227,38 @@ bool Parser::is_valid_terminal(std::string str) {
 void Parser::initializeParsingTable()
 {
     parsingTable["DO"]["1p"] = {"DO", "BL"};            // [Documento][I_PARAFO] = Documento -> Bloque
+    parsingTable["DO"]["/n"] = {"DO", "BL"};            // [Documento][SALTO_DE_LINEA] = Documento -> Bloque
+    parsingTable["DO"]["1b"] = {"DO", "BL"};            // [Documento][I_TABLA] = Documento -> Bloque
     parsingTable["DO"]["1t"] = {"DO", "BL"};            // [Documento][I_TITULO] = Documento -> Bloque
     parsingTable["DO"]["1s"] = {"DO", "BL"};            // [Documento][I_SUBTITULO] = Documento -> Bloque
     parsingTable["DO"]["1z"] = {"DO", "BL"};            // [Documento][I_SUBSUBTITULO] = Documento -> Bloque
-    parsingTable["DO"]["/n"] = {"DO", "BL"};            // [Documento][SALTO_DE_LINEA] = Documento -> Bloque
     parsingTable["DO"]["$$"] = {"DO", "BL"};            // [Documento][END_OF_FILE] = Documento -> Bloque
 
-    parsingTable["BL"]["1p"] = {"BL", "1pTE2pBL"};      // [Bloque][I_PARAFO] = Bloque -> I_PARAFO TExto F_PARAFO Bloque
+    parsingTable["BL"]["1p"] = {"BL", "1pTE2pBL"};      // [Bloque][I_PARAFO] = Bloque -> I_PARAFO Texto F_PARAFO Bloque
+    parsingTable["BL"]["/n"] = {"BL", "/nBL"};          // [Bloque][SALTO_DE_LINEA] = Bloque -> SALTO_DE_LINEA Bloque
+    parsingTable["BL"]["1b"] = {"BL", "1bCT2b"};        // [Bloque][I_TABLA] = Bloque -> I_TABLA cuerpo_tabla F_TABLA
+        //parsingTable["BL"]["1b"] = {"BL", "1b/nCT2b"};        // [Bloque][I_TABLA] = Bloque -> I_TABLA cuerpo_tabla F_TABLA
     parsingTable["BL"]["1t"] = {"BL", "1tTE2tBL"};      // [Bloque][I_TITULO] = Bloque -> I_TITULO TExto F_TITULO Bloque
     parsingTable["BL"]["1s"] = {"BL", "1sTE2sBL"};      // [Bloque][I_SUBTITULO] = Bloque -> I_SUBTITULO TExto F_SUBTITULO Bloque
     parsingTable["BL"]["1z"] = {"BL", "1zTE2zBL"};      // [Bloque][I_SUBSUBTITULO] = Bloque -> I_SUBSUBTITULO TExto F_SUBSUBTITULO Bloque
-    parsingTable["BL"]["/n"] = {"BL", "/nBL"};          // [Bloque][SALTO_DE_LINEA] = Bloque -> SALTO_DE_LINEA Bloque
     parsingTable["BL"]["$$"] = {"BL", "  "};            // [Bloque][END_OF_FILE] = Bloque -> EPSILON
 
+    parsingTable["CT"]["2b"] = {"CT", "  "};            // [CuerpoTabla][F_TABLA] =  CuerpoTabla -> EPSILON
+    //parsingTable["CT"]["1m"] = {"CT", "1mET2m/nCT"};      // [CuerpoTabla][I_MARCO] = CuerpoTabla ->  I_TABLA_TITULO estructura_tabla F_TABLA_TITULO CuerpoTabla
+    //parsingTable["CT"]["1n"] = {"CT", "1nET2n/nCT"};      // [CuerpoTabla][I_NORMAL] = CuerpoTabla ->  I_TABLA_CONTENIDO estructura_tabla F_TABLA_CONTENIDO CuerpoTabla
+    parsingTable["CT"]["1m"] = {"CT", "1mET2mCT"};      // [CuerpoTabla][I_MARCO] = CuerpoTabla ->  I_TABLA_TITULO estructura_tabla F_TABLA_TITULO CuerpoTabla
+    parsingTable["CT"]["1n"] = {"CT", "1nET2nCT"};      // [CuerpoTabla][I_NORMAL] = CuerpoTabla ->  I_TABLA_CONTENIDO estructura_tabla F_TABLA_CONTENIDO CuerpoTabla
+
+    parsingTable["ET"]["2m"] = {"ET", "  "};            // [EstructuraTabla][F_TABLA_TITULO] = EstructuraTabla -> EPSILON
+    parsingTable["ET"]["2n"] = {"ET", "  "};            // [EstructuraTabla][F_TABLA_CONTENIDO] = EstructuraTabla -> EPSILON
+    parsingTable["ET"]["1|"] = {"ET", "1|TE2|ET"};         // [EstructuraTabla][SEPARADOR] = EstructuraTabla -> BARRA_TABLA Texto EstructuraTabla
+
     parsingTable["TE"]["2p"] = {"TE", "  "};            // [Texto][F_PARAFO] = Texto -> EPSILON
+    parsingTable["TE"]["/n"] = {"TE", "/nTE"};          // [Texto][SALTO_DE_LINEA] = Texto -> SALTO_DE_LINEA Texto
     parsingTable["TE"]["2t"] = {"TE", "  "};            // [Texto][F_TITULO] = Texto -> EPSILON
     parsingTable["TE"]["2s"] = {"TE", "  "};            // [Texto][F_SUBTITULO] = Texto -> EPSILON
     parsingTable["TE"]["2z"] = {"TE", "  "};            // [Texto][F_SUBSUBTITULO] = Texto -> EPSILON
-    parsingTable["TE"]["/n"] = {"TE", "/nTE"};          // [Texto][SALTO_DE_LINEA] = Texto -> SALTO_DE_LINEA Texto
+    parsingTable["TE"]["2|"] = {"TE", "  "};            // [Texto][F_TABLA_TITULO] = Texto -> EPSILON
     parsingTable["TE"]["wo"] = {"TE", "woTE"};          // [Texto][WORD] = Texto -> word Texto
     parsingTable["TE"]["1*"] = {"TE", "TSTE"};          // [Texto][I_NEGRITA] = Texto -> TextoPrima Texto
     parsingTable["TE"]["2*"] = {"TE", "  "};            // [Texto][F_NEGRITA] = Texto -> EPSILON
@@ -315,6 +342,7 @@ void Parser::parsing_ll1(vector<Token> input_tokens)
             Token select = input_tokens[pos];
 
             string select_translated = translator(select);
+            cout << "[+] Translated: " << select_translated << endl;
 
             output += select_translated;
 

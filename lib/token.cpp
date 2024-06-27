@@ -19,6 +19,15 @@ enum token_type {
     I_PARRAFO,  //'<p>'
     F_PARRAFO, //'</p>'
 
+    I_TABLA, //'<t>'
+    F_TABLA, //'</t>'
+
+    I_TABLA_TITULO, //'<tm>'
+    F_TABLA_TITULO, //'</tm>'
+
+    I_TABLA_CONTENIDO, //'<t1>'
+    F_TABLA_CONTENIDO, //'</t1>'
+
     I_NEGRITA, //'*'
     F_NEGRITA, //'*'
 
@@ -40,7 +49,8 @@ enum token_type {
     I_URL, //'{'
     F_URL, //'}'
 
-    BAR_TABLE, //'|'
+    I_BAR_TABLE, //'|'
+    F_BAR_TABLE, //'|'
 
     SALTO_DE_LINEA, //'\n'    
 
@@ -121,6 +131,22 @@ string Token::get_string()
         return "1p";
     else if(type == F_PARRAFO)
         return "2p";
+    else if(type == I_TABLA)
+        return "1b";
+    else if(type == F_TABLA)
+        return "2b";
+    else if(type == I_TABLA_TITULO)
+        return "1m";
+    else if(type == F_TABLA_TITULO)
+        return "2m";
+    else if(type == I_TABLA_CONTENIDO)
+        return "1n";
+    else if(type == F_TABLA_CONTENIDO)
+        return "2n";
+    else if(type == I_BAR_TABLE)
+        return "1|";
+    else if(type == F_BAR_TABLE)
+        return "2|";
     else if(type == WORD)
         return "wo";
     else if (type == SALTO_DE_LINEA)
@@ -191,6 +217,22 @@ void Token::print() {
         std::cout << "I_PARRAFO' ";
     else if(type == F_PARRAFO)
         std::cout << "F_PARRAFO' ";
+    else if(type == I_TABLA)
+        std::cout << "I_TABLA' ";
+    else if(type == F_TABLA)
+        std::cout << "F_TABLA' ";
+    else if(type == I_TABLA_TITULO)
+        std::cout << "I_TABLA_TITULO' ";
+    else if (type == F_TABLA_TITULO)
+        std::cout << "F_TABLA_TITULO' ";
+    else if(type == I_TABLA_CONTENIDO)
+        std::cout << "I_TABLA_CONTENIDO' ";
+    else if (type == F_TABLA_CONTENIDO)
+        std::cout << "F_TABLA_CONTENIDO' ";
+    else if (type == I_BAR_TABLE)
+        std::cout << "I_BAR_TABLE' ";
+    else if (type == F_BAR_TABLE)
+        std::cout << "F_BAR_TABLE' ";
     else if(type == WORD)
         std::cout << "WORD' ";
     else if (type == SALTO_DE_LINEA)
@@ -231,8 +273,6 @@ void Token::print() {
         std::cout << "I_URL' ";
     else if (type == F_URL)
         std::cout << "F_URL' ";
-    else if (type == BAR_TABLE)
-        std::cout << "BAR_TABLE' ";
     else if (type == UNKNOW)
         std::cout << "UNKNOW' ";
     else if (type == END_OF_FILE)
@@ -261,6 +301,22 @@ void Token::print_no_LineIndex() {
         std::cout << "I_PARRAFO' ";
     else if(type == F_PARRAFO)
         std::cout << "F_PARRAFO' ";
+    else if(type == I_TABLA)
+        std::cout << "I_TABLA' ";
+    else if(type == F_TABLA)
+        std::cout << "F_TABLA' ";
+    else if(type == I_TABLA_TITULO)
+        std::cout << "I_TABLA_TITULO' ";
+    else if (type == F_TABLA_TITULO)
+        std::cout << "F_TABLA_TITULO' ";
+    else if(type == I_TABLA_CONTENIDO)
+        std::cout << "I_TABLA_CONTENIDO' ";
+    else if (type == F_TABLA_CONTENIDO)
+        std::cout << "F_TABLA_CONTENIDO' ";
+    else if (type == I_BAR_TABLE)
+        std::cout << "I_BAR_TABLE' ";
+    else if (type == F_BAR_TABLE)
+        std::cout << "F_BAR_TABLE' ";
     else if(type == WORD)
         std::cout << "WORD' ";
     else if (type == SALTO_DE_LINEA)
@@ -301,8 +357,6 @@ void Token::print_no_LineIndex() {
         std::cout << "I_URL' ";
     else if (type == F_URL)
         std::cout << "F_URL' ";
-    else if (type == BAR_TABLE)
-        std::cout << "BAR_TABLE' ";
     else if (type == UNKNOW)
         std::cout << "UNKNOW' ";
     else if (type == END_OF_FILE)
@@ -357,6 +411,10 @@ void Token::createTableOfRelations()
 
     // URLs
     relationAux = make_tuple(Token(I_URL, "{u"), Token(F_URL, "}u"));
+    tableOfRelations.push_back(relationAux);
+
+    // BARRAS DE TABLA
+    relationAux = make_tuple(Token(I_BAR_TABLE, "1|"), Token(F_BAR_TABLE, "2|"));
     tableOfRelations.push_back(relationAux);
 }
 

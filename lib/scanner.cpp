@@ -37,6 +37,7 @@ class scanner {
         void get_titles(char character, int &index);
         void get_paragraph(char character, int &index);
         void get_special(token_type type_init, token_type type_last, vector<Token> &stack, string character, int index);
+        void get_table(char character, int &index);
         void get_bar_table(int index);
         typedef token_type (scanner::*selectFunction)(const string&, int);
         void get_init_option(token_type type_init, token_type type_last, string init_char, string last_char, vector<Token> &stack, int &index, selectFunction select_type);
@@ -109,7 +110,13 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
     else if(character == '$'){
         get_special(I_CURSIVA, F_CURSIVA, stack, "$", index);
     }
-    // * Opciones (Titulos, Subtitulos, Subsubtitulos, Color, Fuente, URL)
+    // * Creacion de la barra de la tabla
+    else if(character == '|')
+    {
+        //get_bar_table(index);
+        get_special(I_BAR_TABLE, F_BAR_TABLE, stack, "|", index);
+    }
+    // * Opciones (Titulos, Subtitulos, Subsubtitulos, Color, Fuente, URL, parrafo, tabla)
     else if (character == '<') 
     {
         char next_char = peek_char(index);
@@ -122,6 +129,11 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
         else if(next_char == 'p'){
             get_paragraph(character, index);
         }
+        // * Tabla - TablaTitulo - TablaContenido
+        else if(next_char == 't'){
+            get_table(character, index);
+        }
+        // * Cierre de etiqueta (</)
         else if(next_char == '/')
         {
             get_close(character, index);
@@ -145,7 +157,6 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
             else if(next_char == '{') {
                 get_init_option(I_URL, F_URL, "{", "}", stack, index, &scanner::url_detector);
             }
-
         }
         // * Cerrar OPCION (</)
     }
@@ -153,11 +164,6 @@ void scanner::recognize_token(int &index, vector<Token> &stack) {
     else if(character == '>')
     {
         get_close_option(stack, index);
-    }
-    // * Tabla
-    else if (character == '|')
-    {
-        get_bar_table(index);
     }
     // * Palabra
     else
@@ -242,17 +248,21 @@ void scanner::get_special(token_type type_init, token_type type_last, vector<Tok
     }
 }
 
+// Metodo: Token Cerrar - (F_PARRAFO, F_TITULO, F_SUBTITULO, F_SUBSUBTITULO)
 void scanner::get_close(char character, int &index)
 {
     index++;
     character = get_char(index);
     
+    // * Cerrar Parrafo
     if(character == 'p') 
     {
         character = get_char(index);
         if(character == '>')
             collect_token(F_PARRAFO, "</p>", index);
     }
+
+    // * Cerrar Titulo - Subtitulo - Subsubtitulo
     else if(character == 'h')
     {
         character = get_char(index);
@@ -260,15 +270,15 @@ void scanner::get_close(char character, int &index)
         string c_type;
 
         token_type t_type;
-        if(character == '1')
+        if(character == '1') // Cerrar titulo
         {
             t_type = F_TITULO;
         }
-        else if(character == '2')
+        else if(character == '2' ) // Cerrar subtitulo
         {
             t_type = F_SUBTITULO;
         }
-        else if(character == '3')
+        else if(character == '3') // Cerrar subsubtitulo
         {
             t_type = F_SUBSUBTITULO;
         }
@@ -287,18 +297,80 @@ void scanner::get_close(char character, int &index)
         }
 
         // Print index"
-        cout << "Index: " << index << " - " << getNumberOfLine(index) << endl;
+        //cout << "Index: " << index << " - " << getNumberOfLine(index) << endl;
 
         collect_token(t_type, "</h"+c_type+">", index);
     }
+    
+    // * Cerrar Tabla - TablaTitulo - TablaContenido
+    else if(character == 't'){
+        character = get_char(index);
+
+        string c_type;
+
+        token_type t_type;
+        if(character == '1'){
+            t_type = F_TABLA;
+        }
+        else if(character == 'm'){
+            t_type = F_TABLA_TITULO;
+        }
+        else if(character == 'n'){
+            t_type = F_TABLA_CONTENIDO;
+        }
+        else{
+            //error
+        }
+        c_type = character;
+
+        character = get_char(index);
+
+        if(character != '>')
+        {
+            cout << "[!] Error de cerrado en la linea: " << endl;
+            // error
+            return;
+        }
+
+        // Print index"
+        //cout << "Index: " << index << " - " << getNumberOfLine(index) << endl;
+
+        collect_token(t_type, "</t"+c_type+">", index);
+    }
+
     else{
         //error
     }
 }
 
-void scanner::get_bar_table(int index)
-{
-    collect_token(BAR_TABLE, "|", index);
+// Metodo: Token Tabla - (I_TABLA)
+void scanner::get_table(char character, int &index){
+    index++;
+    character = get_char(index);
+
+    token_type t_type;
+    string c_type;
+    c_type = character;
+
+    if(character == '1'){
+        t_type = I_TABLA;
+    }
+    else if(character == 'm'){
+        t_type = I_TABLA_TITULO;
+    }
+    else if(character == 'n'){
+        t_type = I_TABLA_CONTENIDO;
+    }
+    else{
+        collect_token(UNKNOW, "<t", index);
+        return;
+    }
+
+    character = get_char(index);
+
+    if(character == '>'){
+        collect_token(t_type, "<t"+c_type+">", index);
+    }
 }
 
 void scanner::get_init_option(
@@ -307,12 +379,6 @@ void scanner::get_init_option(
     vector<Token> &stack, int &index,
     selectFunction select_type)
 {
-    //  // -> Añadimos token de INICIO DE OPCION
-    // collect_token(I_OPCION, "<", index);   
-    
-    // index++;
-    // stack.push_back(Token(I_OPCION, "<", getNumberOfLine(index)));
-
     index++;
     // -> Añadimos token de INICIO DE COLOR
     Token token_i_c(type_init, init_char, getNumberOfLine(index));
@@ -331,6 +397,7 @@ void scanner::get_init_option(
     character += get_char(index);
     if(character == last_char)
     {
+        // -> Añadimos token de FIN DE COLOR
         Token token_f_c(type_last, last_char, getNumberOfLine(index));
         tokens.push_back(token_f_c);
     }

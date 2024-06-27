@@ -29,4 +29,3 @@ int main() {
     // Translator translator(tokens, "file.html");
 
 }
-        
