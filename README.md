@@ -36,19 +36,22 @@ make clean
 
 El ejemplo que se esta usando es:
 ```txt
-// (>‿◠)✌
- 
-<h1> estoy aburrido </h1>
+<h1> titulo grande </h1>
+<h2> titulo mediano </h2>
+<h3> titulo pequeño </h3>
+<p> esto es un parrafo </p>
+<p> *esto esta en negrita* $esto esta en italica$ _esto esta tachado _ </p>
+<p>*$_ esto es una triple anidacion _$*</p>
 
-<h2> y aun no acabo de hacer esto </h2>
+<p> <(rojo)esto esta en rojo> <(amarillo)esto esta en amarillo> <(azul)esto esta en azul></p>
 
-<h3> lo mismo queja de arriba pero ahora en h3 </h3>
+<p> <[arial]esto esta en arial>  <[times]esto esta en times> <[courier]esto esta en courier> <[helvetica]esto esta en helvetica> </p>
 
-<p> si preguntan por ti, solo dire que te vi en mis suenos una noche 
-y solo sueno desde entonces...</p>
+<p><{http://google.com} esto es un enlace a <(azul)G><(rojo)o><(amarillo)o><(azul)g><(amarillo)l><(rojo)e>></p>
 
-<p> *esto esta en negrita $pero esto esta en cursiva$ _ y esto esta tachado _*</p>
-
-<p> <(rojo) esto esta en rojo> <[arial] esto esta en arial> 
-<{https://google.com} google ></p>
+<t1> 
+    <tm> | TITULO | | TITULO | | TITULO | </tm>
+    <tn> | texto  | | texto  | | texto  | </tn>
+    <tn> | texto  | | texto  | | texto  | </tn>
+</t1>
 ```
